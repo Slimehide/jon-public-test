@@ -419,9 +419,10 @@ body *{
     display: block;
     font-weight: 400;
     letter-spacing: -0.05em;
-    background: -webkit-linear-gradient(#B9B9B9, #535353);
+    color:#B9B9B9;
+    /*background: -webkit-linear-gradient(#B9B9B9, #535353);
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    -webkit-text-fill-color: transparent;*/
 }
 .bottom__info{
 	margin-top: 114px;
@@ -847,9 +848,10 @@ footer>ul:nth-child(2){
 	line-height: 100%;
 	letter-spacing: -0.03em;
 	font-weight: 400;
-    background: -webkit-linear-gradient(#B9B9B9, #535353);
+    color:#B9B9B9;
+    /*background: -webkit-linear-gradient(#B9B9B9, #535353);
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    -webkit-text-fill-color: transparent;*/
 }
 .templates__wrapper{
 	margin-top: 120px;
@@ -965,14 +967,14 @@ footer>ul:nth-child(2){
 	width: 100%;
 	max-width: calc(90vh * 9 / 16);
 }
-.project__popup>.inner .box .inn .video iframe{
+.project__popup>.inner .box .inn .video video{
 	position: absolute;
 	top: 0;
 	left: 0;
 	width: 100%;
 	height: 100%;
-	border: 0;
-	pointer-events: none;
+	object-fit: cover;
+	border-radius: 12px;
 }
 .project__popup>.inner .box .inn .video .video__overlay{
 	position: absolute;
@@ -1221,9 +1223,6 @@ body.popup-open .page-scroll{
 	position: relative;
 	border-radius: 12px;
 }
-.project__popup>.inner .box .inn .video iframe{
-	border-radius: 12px;
-}
 .popup__close{
 	display: flex;
 	align-items: center;
@@ -1305,10 +1304,7 @@ body.popup-open .page-scroll{
 		grid-template-columns: repeat(3, 1fr);
 	}
 	.project__popup .float__controls{
-		top:auto;
-		right:0;
-		left:0;
-		bottom:20px;
+		display: none;
 		transform:none;
 		height: auto;
 		width: 100%;
@@ -1319,17 +1315,31 @@ body.popup-open .page-scroll{
 	}
 	.project__popup>.inner{
 		padding: 0;
-		align-items: flex-start;
+		align-items: stretch;
 	}
 	.project__popup>.inner .box{
-		max-width: none;
-		margin: 0 auto;
+		max-width: 100%;
+		width: 100%;
+	}
+	.project__popup>.inner .box .inn{
+		border-radius: 0;
+		height: 100%;
 	}
 	.project__popup>.inner .box .inn .video{
-		max-height: none;
+		max-height: 100%;
+		height: 100%;
+		aspect-ratio: auto;
+		border-radius: 0;
+	}
+	.project__popup>.inner .box .inn .video video{
+		border-radius: 0;
 	}
 	.project__popup>.inner .box .inn .desc{
-		border-radius: 0 0 12px 12px;
+		border-radius: 0;
+	}
+	.project__popup{
+		backdrop-filter: none;
+		background-color: rgba(0, 0, 0, 1);
 	}
 	.bottom__info{
 		min-height: none;

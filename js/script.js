@@ -953,18 +953,18 @@ $(function () {
   (function initProjectPopup() {
 
     var PROJECTS = [
-      { emoji: '⚽', title: 'The Premier League', description: 'Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.', vimeoId: '1182015893', vimeoHash: '63573fe9cd', downloadUrl: '#' },
-      { emoji: '🔴', title: 'The Pokedex', description: 'A living encyclopedia of every known Pokémon. Browse stats, evolutions, and types across all generations.', vimeoId: '1182015893', vimeoHash: '63573fe9cd', downloadUrl: '#' },
-      { emoji: '💸', title: 'S&P 500 Tracker', description: 'Real-time market overview of all S&P 500 companies. Track prices, sectors, and historical performance.', vimeoId: '1182015893', vimeoHash: '63573fe9cd', downloadUrl: '#' },
-      { emoji: '⛏️', title: 'Minecraft Database', description: 'Complete reference for blocks, items, mobs, and crafting recipes. Everything you need for your next build.', vimeoId: '1182015893', vimeoHash: '63573fe9cd', downloadUrl: '#' },
-      { emoji: '🍳', title: 'Recipe Collection', description: 'Organize your favorite recipes with ingredients, steps, and nutritional info. Plan meals for the week ahead.', vimeoId: '1182015893', vimeoHash: '63573fe9cd', downloadUrl: '#' },
-      { emoji: '🎬', title: 'Movie Watchlist', description: 'Track films you want to watch and ones you have seen. Rate, review, and discover new favorites.', vimeoId: '1182015893', vimeoHash: '63573fe9cd', downloadUrl: '#' },
-      { emoji: '🏋️', title: 'Workout Planner', description: 'Design custom workout routines. Log sets, reps, and progress over time with built-in analytics.', vimeoId: '1182015893', vimeoHash: '63573fe9cd', downloadUrl: '#' },
-      { emoji: '✈️', title: 'Travel Journal', description: 'Document your trips with photos, maps, and notes. Plan itineraries and track expenses on the go.', vimeoId: '1182015893', vimeoHash: '63573fe9cd', downloadUrl: '#' },
-      { emoji: '📚', title: 'Book Library', description: 'Catalog your reading list. Track progress, write notes, and get recommendations based on your taste.', vimeoId: '1182015893', vimeoHash: '63573fe9cd', downloadUrl: '#' },
-      { emoji: '✅', title: 'Habit Tracker', description: 'Build better habits with daily check-ins and streak tracking. Visualize your consistency over months.', vimeoId: '1182015893', vimeoHash: '63573fe9cd', downloadUrl: '#' },
-      { emoji: '🎵', title: 'Music Catalog', description: 'Organize albums, playlists, and artists. Rate tracks and discover connections across your library.', vimeoId: '1182015893', vimeoHash: '63573fe9cd', downloadUrl: '#' },
-      { emoji: '🌱', title: 'Plant Care Guide', description: 'Keep your plants alive with watering schedules, sunlight needs, and seasonal care reminders.', vimeoId: '1182015893', vimeoHash: '63573fe9cd', downloadUrl: '#' }
+      { emoji: '⚽', title: 'The Premier League', description: 'Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.', videoSrc: 'videos/img_6197.mov', downloadUrl: '#' },
+      { emoji: '🔴', title: 'The Pokedex', description: 'A living encyclopedia of every known Pokémon. Browse stats, evolutions, and types across all generations.', videoSrc: 'videos/img_6198.mov', downloadUrl: '#' },
+      { emoji: '💸', title: 'S&P 500 Tracker', description: 'Real-time market overview of all S&P 500 companies. Track prices, sectors, and historical performance.', videoSrc: 'videos/img_6197.mov', downloadUrl: '#' },
+      { emoji: '⛏️', title: 'Minecraft Database', description: 'Complete reference for blocks, items, mobs, and crafting recipes. Everything you need for your next build.', videoSrc: 'videos/img_6198.mov', downloadUrl: '#' },
+      { emoji: '🍳', title: 'Recipe Collection', description: 'Organize your favorite recipes with ingredients, steps, and nutritional info. Plan meals for the week ahead.', videoSrc: 'videos/img_6197.mov', downloadUrl: '#' },
+      { emoji: '🎬', title: 'Movie Watchlist', description: 'Track films you want to watch and ones you have seen. Rate, review, and discover new favorites.', videoSrc: 'videos/img_6198.mov', downloadUrl: '#' },
+      { emoji: '🏋️', title: 'Workout Planner', description: 'Design custom workout routines. Log sets, reps, and progress over time with built-in analytics.', videoSrc: 'videos/img_6197.mov', downloadUrl: '#' },
+      { emoji: '✈️', title: 'Travel Journal', description: 'Document your trips with photos, maps, and notes. Plan itineraries and track expenses on the go.', videoSrc: 'videos/img_6198.mov', downloadUrl: '#' },
+      { emoji: '📚', title: 'Book Library', description: 'Catalog your reading list. Track progress, write notes, and get recommendations based on your taste.', videoSrc: 'videos/img_6197.mov', downloadUrl: '#' },
+      { emoji: '✅', title: 'Habit Tracker', description: 'Build better habits with daily check-ins and streak tracking. Visualize your consistency over months.', videoSrc: 'videos/img_6198.mov', downloadUrl: '#' },
+      { emoji: '🎵', title: 'Music Catalog', description: 'Organize albums, playlists, and artists. Rate tracks and discover connections across your library.', videoSrc: 'videos/img_6197.mov', downloadUrl: '#' },
+      { emoji: '🌱', title: 'Plant Care Guide', description: 'Keep your plants alive with watering schedules, sunlight needs, and seasonal care reminders.', videoSrc: 'videos/img_6198.mov', downloadUrl: '#' }
     ];
 
     var $grid = $('.templates__grid');
@@ -1065,77 +1065,53 @@ $(function () {
 
 
     var videoPlaying = false;
-    var preloadedIframes = {};
+    var popupVideoEl = null;
 
-    function buildVimeoUrl(project) {
-      return 'https://player.vimeo.com/video/' + project.vimeoId +
-        '?h=' + project.vimeoHash +
-        '&autoplay=1&controls=0&autopause=0&muted=0';
-    }
-
-    function preloadAdjacent(index) {
-      var total = PROJECTS.length;
-      var prevIdx = (index - 1 + total) % total;
-      var nextIdx = (index + 1) % total;
-
-      [prevIdx, nextIdx].forEach(function (i) {
-        if (preloadedIframes[i]) return;
-        var p = PROJECTS[i];
-        var link = document.createElement('link');
-        link.rel = 'prefetch';
-        link.href = buildVimeoUrl(p);
-        document.head.appendChild(link);
-        preloadedIframes[i] = true;
-      });
-    }
+    // Preload all videos on init
+    PROJECTS.forEach(function (p) {
+      var link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'video';
+      link.href = p.videoSrc;
+      document.head.appendChild(link);
+    });
 
     function loadVideo(project, index) {
       $videoContainer.empty();
 
-      var $iframe = $(
-        '<iframe src="' + buildVimeoUrl(project) + '"' +
-        ' frameborder="0"' +
-        ' allow="autoplay; fullscreen; picture-in-picture"' +
-        '></iframe>'
-      );
+      var $video = $('<video autoplay playsinline></video>');
+      $video.attr('src', project.videoSrc);
       var $overlay = $('<div class="video__overlay"></div>');
-      $videoContainer.append($iframe).append($overlay);
+      $videoContainer.append($video).append($overlay);
 
-      if (popupPlayer) {
-        try { popupPlayer.destroy(); } catch (e) {}
-        popupPlayer = null;
-      }
-
-      popupPlayer = new Vimeo.Player($iframe[0]);
+      popupVideoEl = $video[0];
       videoPlaying = true;
-      popupPlayer.ready().then(function () {
-        popupPlayer.setVolume(1);
-      }).catch(function () {});
+      popupVideoEl.play().catch(function () {});
 
-      popupPlayer.on('ended', function () {
+      $video.on('ended', function () {
         if (!isOpen) return;
         var nextIdx = (currentIndex + 1) % PROJECTS.length;
         switchProject(nextIdx);
       });
-
-      preloadAdjacent(index);
     }
 
     function toggleVideo() {
-      if (!popupPlayer) return;
+      if (!popupVideoEl) return;
       if (videoPlaying) {
-        popupPlayer.pause();
+        popupVideoEl.pause();
         videoPlaying = false;
       } else {
-        popupPlayer.play();
+        popupVideoEl.play();
         videoPlaying = true;
       }
     }
 
     function destroyVideo() {
-      if (popupPlayer) {
-        try { popupPlayer.destroy(); } catch (e) {}
-        popupPlayer = null;
+      if (popupVideoEl) {
+        popupVideoEl.pause();
+        popupVideoEl.removeAttribute('src');
+        popupVideoEl.load();
+        popupVideoEl = null;
       }
       $videoContainer.empty();
     }
@@ -1265,21 +1241,12 @@ $(function () {
 
     function sizePopup() {
       if (window.innerWidth > 991) {
-        $popup.find('.inner .box').css({ maxWidth: '', marginTop: '' });
-        $popup.find('.video').css({ maxHeight: '', height: '' });
-        $popup.find('.inner').css({ padding: '' });
+        $popup.find('.inner .box').css({ maxWidth: '' });
+        $popup.find('.video').css({ height: '' });
         return;
       }
       var wh = window.innerHeight;
-      var topGap = 20;
-      var bottomGap = 30;
-      var floatH = 100;
-      var available = wh - topGap - bottomGap - floatH;
-      var videoW = Math.floor(available * 9 / 16);
-
-      $popup.find('.inner').css({ padding: '0 15px' });
-      $popup.find('.inner .box').css({ maxWidth: videoW + 'px', marginTop: topGap + 'px' });
-      $popup.find('.video').css({ height: available + 'px', maxHeight: available + 'px' });
+      $popup.find('.video').css({ height: wh + 'px' });
     }
 
     $(window).on('resize', function () {
