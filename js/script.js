@@ -1066,21 +1066,32 @@ $(function () {
 
     var videoPlaying = false;
     var popupVideoEl = null;
+    var videoCache = {};
 
-    // Preload all videos on init
+    // Preload all videos into blob cache
     PROJECTS.forEach(function (p) {
-      var link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'video';
-      link.href = p.videoSrc;
-      document.head.appendChild(link);
+      if (videoCache[p.videoSrc]) return;
+      videoCache[p.videoSrc] = 'loading';
+      fetch(p.videoSrc)
+        .then(function (r) { return r.blob(); })
+        .then(function (blob) {
+          videoCache[p.videoSrc] = URL.createObjectURL(blob);
+        })
+        .catch(function () {
+          videoCache[p.videoSrc] = p.videoSrc;
+        });
     });
+
+    function getVideoSrc(project) {
+      var cached = videoCache[project.videoSrc];
+      return (cached && cached !== 'loading') ? cached : project.videoSrc;
+    }
 
     function loadVideo(project, index) {
       $videoContainer.empty();
 
       var $video = $('<video autoplay playsinline></video>');
-      $video.attr('src', project.videoSrc);
+      $video.attr('src', getVideoSrc(project));
       var $overlay = $('<div class="video__overlay"></div>');
       $videoContainer.append($video).append($overlay);
 
