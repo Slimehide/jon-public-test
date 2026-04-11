@@ -744,9 +744,8 @@ $(function () {
       var targetCY = targetFloatY + cursorOffY;
 
       var vpW = scrollEl.clientWidth;
-      var refH = 1440;
-      var startCX = vpW + scrollX + 50;
-      var startCY = refH + 50;
+      var startCX = vpW + scrollX + ulWidth + 50;
+      var startCY = targetCY + 300;
 
       var exitCX = scrollX - 60;
       var exitCY = targetCY - 100;
