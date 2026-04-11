@@ -1318,13 +1318,15 @@ body.popup-open .page-scroll{
 		align-items: center;
 	}
 	.project__popup>.inner{
-		padding: 20px 15px 120px 15px;
+		padding: 0;
+		align-items: flex-start;
 	}
 	.project__popup>.inner .box{
-		max-width: calc((100vh - 140px) * 9 / 16);
+		max-width: none;
+		margin: 0 auto;
 	}
 	.project__popup>.inner .box .inn .video{
-		max-height: calc(100vh - 140px);
+		max-height: none;
 	}
 	.project__popup>.inner .box .inn .desc{
 		border-radius: 0 0 12px 12px;
