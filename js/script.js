@@ -1071,7 +1071,7 @@ $(function () {
     function buildVimeoUrl(project) {
       return 'https://player.vimeo.com/video/' + project.vimeoId +
         '?h=' + project.vimeoHash +
-        '&autoplay=1&controls=0&autopause=0&muted=1';
+        '&autoplay=1&controls=0&autopause=0&muted=0';
     }
 
     function preloadAdjacent(index) {
@@ -1110,8 +1110,6 @@ $(function () {
       popupPlayer = new Vimeo.Player($iframe[0]);
       videoPlaying = true;
       popupPlayer.ready().then(function () {
-        return popupPlayer.play();
-      }).then(function () {
         popupPlayer.setVolume(1);
       }).catch(function () {});
 
@@ -1191,15 +1189,10 @@ $(function () {
       currentIndex = newIndex;
 
       $popup.find('.desc__body').slideUp(200);
-      $popupInn.css({ opacity: 0 });
+      updatePopupContent(newIndex);
+      highlightFloatItem(newIndex, true);
 
-      setTimeout(function () {
-        updatePopupContent(newIndex);
-        highlightFloatItem(newIndex, true);
-        $popupInn.css({ opacity: 1 });
-
-        setTimeout(function () { isSwitching = false; }, 200);
-      }, 150);
+      setTimeout(function () { isSwitching = false; }, 300);
     }
 
     $grid.on('click', '.elem', function () {
