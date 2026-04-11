@@ -1087,22 +1087,37 @@ $(function () {
       return (cached && cached !== 'loading') ? cached : project.videoSrc;
     }
 
+    var progressRAF = 0;
+
     function loadVideo(project, index) {
       $videoContainer.empty();
+      cancelAnimationFrame(progressRAF);
 
       var $video = $('<video autoplay playsinline></video>');
       $video.attr('src', getVideoSrc(project));
       var $overlay = $('<div class="video__overlay"></div>');
-      $videoContainer.append($video).append($overlay);
+      var $progress = $('<div class="video__progress"><div class="video__progress-bar"></div></div>');
+      $videoContainer.append($video).append($overlay).append($progress);
 
+      var $bar = $progress.find('.video__progress-bar');
       popupVideoEl = $video[0];
       videoPlaying = true;
       popupVideoEl.play().catch(function () {});
 
+      function updateProgress() {
+        if (!popupVideoEl) return;
+        var pct = popupVideoEl.duration ? (popupVideoEl.currentTime / popupVideoEl.duration) * 100 : 0;
+        $bar.css('width', pct + '%');
+        progressRAF = requestAnimationFrame(updateProgress);
+      }
+      progressRAF = requestAnimationFrame(updateProgress);
+
       $video.on('ended', function () {
+        cancelAnimationFrame(progressRAF);
+        $bar.css('width', '100%');
         if (!isOpen) return;
         var nextIdx = (currentIndex + 1) % PROJECTS.length;
-        switchProject(nextIdx);
+        switchProject(nextIdx, 1);
       });
     }
 
@@ -1118,6 +1133,7 @@ $(function () {
     }
 
     function destroyVideo() {
+      cancelAnimationFrame(progressRAF);
       if (popupVideoEl) {
         popupVideoEl.pause();
         popupVideoEl.removeAttribute('src');
@@ -1169,16 +1185,31 @@ $(function () {
       $popup.find('.inner').css({ padding: '' });
     }
 
-    function switchProject(newIndex) {
+    function switchProject(newIndex, direction) {
       if (newIndex === currentIndex || isSwitching) return;
       isSwitching = true;
-      currentIndex = newIndex;
 
-      $popup.find('.desc__body').slideUp(200);
-      updatePopupContent(newIndex);
-      highlightFloatItem(newIndex, true);
+      var dir = direction || (newIndex > currentIndex ? 1 : -1);
+      var $inn = $popup.find('.inner .box .inn');
+      var h = window.innerHeight;
 
-      setTimeout(function () { isSwitching = false; }, 300);
+      $popup.find('.desc__body').slideUp(0);
+      $inn.css({ transition: 'transform 0.2s ease, opacity 0.2s ease', transform: 'translateY(' + (dir * -h) + 'px)', opacity: 0 });
+
+      setTimeout(function () {
+        currentIndex = newIndex;
+        updatePopupContent(newIndex);
+        highlightFloatItem(newIndex, true);
+
+        $inn.css({ transition: 'none', transform: 'translateY(' + (dir * h) + 'px)', opacity: 0 });
+
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            $inn.css({ transition: 'transform 0.25s ease, opacity 0.25s ease', transform: '', opacity: 1 });
+            setTimeout(function () { isSwitching = false; }, 300);
+          });
+        });
+      }, 200);
     }
 
     $grid.on('click', '.elem', function () {
@@ -1226,12 +1257,12 @@ $(function () {
 
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         e.preventDefault();
-        switchProject((currentIndex + 1) % PROJECTS.length);
+        switchProject((currentIndex + 1) % PROJECTS.length, 1);
       }
 
       if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
         e.preventDefault();
-        switchProject((currentIndex - 1 + PROJECTS.length) % PROJECTS.length);
+        switchProject((currentIndex - 1 + PROJECTS.length) % PROJECTS.length, -1);
       }
     });
 
@@ -1244,9 +1275,9 @@ $(function () {
       lastWheelTime = now;
 
       if (e.deltaY > 0) {
-        switchProject((currentIndex + 1) % PROJECTS.length);
+        switchProject((currentIndex + 1) % PROJECTS.length, 1);
       } else {
-        switchProject((currentIndex - 1 + PROJECTS.length) % PROJECTS.length);
+        switchProject((currentIndex - 1 + PROJECTS.length) % PROJECTS.length, -1);
       }
     }, { passive: false });
 
@@ -1270,17 +1301,47 @@ $(function () {
     (function initSwipe() {
       var startX = 0, startY = 0, startTime = 0;
       var swiping = false;
-      var threshold = 50;
+      var threshold = 40;
       var el = $popup.find('.inner')[0];
       if (!el) return;
 
+      var $inn = $popup.find('.inner .box .inn');
+      var dragging = false;
+      var axis = null;
+
       el.addEventListener('touchstart', function (e) {
-        if (!isOpen) return;
+        if (!isOpen || isSwitching) return;
         var t = e.touches[0];
         startX = t.clientX;
         startY = t.clientY;
         startTime = Date.now();
         swiping = true;
+        dragging = false;
+        axis = null;
+        $inn.css('transition', 'none');
+      }, { passive: true });
+
+      el.addEventListener('touchmove', function (e) {
+        if (!isOpen || !swiping) return;
+        var t = e.touches[0];
+        var dx = t.clientX - startX;
+        var dy = t.clientY - startY;
+
+        if (!axis) {
+          if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+            axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+            dragging = true;
+          } else {
+            return;
+          }
+        }
+
+        var delta = axis === 'x' ? dx : dy;
+        var prop = axis === 'x'
+          ? 'translateX(' + delta + 'px)'
+          : 'translateY(' + delta + 'px)';
+        var opacity = Math.max(0.3, 1 - Math.abs(delta) / 400);
+        $inn.css({ transform: prop, opacity: opacity });
       }, { passive: true });
 
       el.addEventListener('touchend', function (e) {
@@ -1290,24 +1351,47 @@ $(function () {
         var dx = t.clientX - startX;
         var dy = t.clientY - startY;
         var dt = Date.now() - startTime;
-        if (dt > 600) return;
+        var delta = axis === 'x' ? dx : dy;
+        var absDelta = Math.abs(delta);
 
-        var absDx = Math.abs(dx);
-        var absDy = Math.abs(dy);
-
-        if (absDx > threshold && absDx > absDy) {
-          if (dx < 0) {
-            switchProject((currentIndex + 1) % PROJECTS.length);
-          } else {
-            switchProject((currentIndex - 1 + PROJECTS.length) % PROJECTS.length);
-          }
-        } else if (absDy > threshold && absDy > absDx) {
-          if (dy < 0) {
-            switchProject((currentIndex + 1) % PROJECTS.length);
-          } else {
-            switchProject((currentIndex - 1 + PROJECTS.length) % PROJECTS.length);
-          }
+        if (!dragging || absDelta < threshold) {
+          $inn.css({ transition: 'transform 0.25s ease, opacity 0.25s ease', transform: '', opacity: 1 });
+          axis = null;
+          return;
         }
+
+        var direction = delta < 0 ? 1 : -1;
+        var slideOut = axis === 'x'
+          ? 'translateX(' + (direction * -window.innerWidth) + 'px)'
+          : 'translateY(' + (direction * -window.innerHeight) + 'px)';
+
+        $inn.css({ transition: 'transform 0.2s ease, opacity 0.2s ease', transform: slideOut, opacity: 0 });
+
+        var nextIdx = direction > 0
+          ? (currentIndex + 1) % PROJECTS.length
+          : (currentIndex - 1 + PROJECTS.length) % PROJECTS.length;
+
+        setTimeout(function () {
+          var slideIn = axis === 'x'
+            ? 'translateX(' + (direction * window.innerWidth) + 'px)'
+            : 'translateY(' + (direction * window.innerHeight) + 'px)';
+
+          isSwitching = true;
+          currentIndex = nextIdx;
+          $popup.find('.desc__body').slideUp(0);
+          updatePopupContent(nextIdx);
+          highlightFloatItem(nextIdx, true);
+
+          $inn.css({ transition: 'none', transform: slideIn, opacity: 0 });
+
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              $inn.css({ transition: 'transform 0.25s ease, opacity 0.25s ease', transform: '', opacity: 1 });
+              setTimeout(function () { isSwitching = false; }, 300);
+            });
+          });
+          axis = null;
+        }, 200);
       }, { passive: true });
     })();
 
