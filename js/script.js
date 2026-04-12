@@ -887,6 +887,8 @@ $(function () {
     const $box = $(this);
     const vimeoId = $box.data('vimeo-id');
     const hash = $box.data('vimeo-hash');
+
+    try {
     const $iframe = $(`
       <iframe
         src="https://player.vimeo.com/video/${vimeoId}?h=${hash}&background=1&controls=0&autopause=0"
@@ -907,6 +909,8 @@ $(function () {
       player.setVolume(0);
       player.setLoop(true);
       player.play();
+    }).catch(function () {
+      $iframe.remove();
     });
 
     player.on('ended', function () {
@@ -947,6 +951,7 @@ $(function () {
         $box.find('.icon-pause').show();
       }
     });
+    } catch (e) {}
   });
 
 
@@ -999,6 +1004,7 @@ $(function () {
     var popupPlayer = null;
     var isOpen = false;
     var isSwitching = false;
+    var switchSafetyTimer = 0;
     var lastWheelTime = 0;
     var wheelCooldown = 350;
 
@@ -1068,7 +1074,6 @@ $(function () {
     var popupVideoEl = null;
     var videoCache = {};
 
-    // Preload all videos into blob cache
     PROJECTS.forEach(function (p) {
       if (videoCache[p.videoSrc]) return;
       videoCache[p.videoSrc] = 'loading';
@@ -1089,9 +1094,12 @@ $(function () {
 
     var progressRAF = 0;
 
+    var userPaused = false;
+
     function loadVideo(project, index) {
       $videoContainer.empty();
       cancelAnimationFrame(progressRAF);
+      userPaused = false;
 
       var $video = $('<video autoplay playsinline></video>');
       $video.attr('src', getVideoSrc(project));
@@ -1102,7 +1110,22 @@ $(function () {
       var $bar = $progress.find('.video__progress-bar');
       popupVideoEl = $video[0];
       videoPlaying = true;
+
+      function ensurePlaying() {
+        if (!popupVideoEl || userPaused || !isOpen) return;
+        if (popupVideoEl.paused && popupVideoEl.readyState >= 2) {
+          popupVideoEl.play().catch(function () {});
+        }
+      }
+
       popupVideoEl.play().catch(function () {});
+
+      $video.on('canplay', ensurePlaying);
+      $video.on('pause', function () {
+        if (!userPaused && isOpen) {
+          setTimeout(ensurePlaying, 50);
+        }
+      });
 
       function updateProgress() {
         if (!popupVideoEl) return;
@@ -1126,9 +1149,11 @@ $(function () {
       if (videoPlaying) {
         popupVideoEl.pause();
         videoPlaying = false;
+        userPaused = true;
       } else {
         popupVideoEl.play();
         videoPlaying = true;
+        userPaused = false;
       }
     }
 
@@ -1186,8 +1211,11 @@ $(function () {
     }
 
     function switchProject(newIndex, direction) {
-      if (newIndex === currentIndex || isSwitching) return;
+      if (newIndex === currentIndex) return;
+      if (isSwitching) return;
       isSwitching = true;
+      clearTimeout(switchSafetyTimer);
+      switchSafetyTimer = setTimeout(function () { isSwitching = false; }, 1000);
 
       var dir = direction || (newIndex > currentIndex ? 1 : -1);
       var $inn = $popup.find('.inner .box .inn');
@@ -1215,6 +1243,19 @@ $(function () {
     $grid.on('click', '.elem', function () {
       var index = parseInt($(this).data('project-index'), 10);
       openPopup(index);
+    });
+
+    $popup.on('click', '.btn-popup__email', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      closePopup();
+      var $form = $('.bottom__controls .mobile-info');
+      if ($form.length) {
+        var scrollEl = $('.page-scroll')[0];
+        var formTop = $form.offset().top + scrollEl.scrollTop - 100;
+        $(scrollEl).animate({ scrollTop: formTop }, 500);
+        setTimeout(function () { $form.find('input[type="email"]').focus(); }, 550);
+      }
     });
 
     $popup.find('.popup__close').on('click', function (e) {
