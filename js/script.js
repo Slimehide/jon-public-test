@@ -1005,6 +1005,7 @@ $(function () {
     var isOpen = false;
     var isSwitching = false;
     var switchSafetyTimer = 0;
+    var swipeDone = false;
     var lastWheelTime = 0;
     var wheelCooldown = 350;
 
@@ -1074,6 +1075,7 @@ $(function () {
     var popupVideoEl = null;
     var videoCache = {};
 
+    // Preload all videos into blob cache
     PROJECTS.forEach(function (p) {
       if (videoCache[p.videoSrc]) return;
       videoCache[p.videoSrc] = 'loading';
@@ -1273,6 +1275,7 @@ $(function () {
 
     $popup.on('click', '.video__overlay', function (e) {
       e.stopPropagation();
+      if (swipeDone) { swipeDone = false; return; }
       toggleVideo();
     });
 
@@ -1349,15 +1352,15 @@ $(function () {
       var $inn = $popup.find('.inner .box .inn');
       var dragging = false;
       var axis = null;
-
       el.addEventListener('touchstart', function (e) {
-        if (!isOpen || isSwitching) return;
+        if (!isOpen) return;
         var t = e.touches[0];
         startX = t.clientX;
         startY = t.clientY;
         startTime = Date.now();
         swiping = true;
         dragging = false;
+        swipeHandled = false;
         axis = null;
         $inn.css('transition', 'none');
       }, { passive: true });
@@ -1391,7 +1394,6 @@ $(function () {
         var t = e.changedTouches[0];
         var dx = t.clientX - startX;
         var dy = t.clientY - startY;
-        var dt = Date.now() - startTime;
         var delta = axis === 'x' ? dx : dy;
         var absDelta = Math.abs(delta);
 
@@ -1400,6 +1402,9 @@ $(function () {
           axis = null;
           return;
         }
+
+        swipeDone = true;
+        isSwitching = true;
 
         var direction = delta < 0 ? 1 : -1;
         var slideOut = axis === 'x'
@@ -1417,7 +1422,6 @@ $(function () {
             ? 'translateX(' + (direction * window.innerWidth) + 'px)'
             : 'translateY(' + (direction * window.innerHeight) + 'px)';
 
-          isSwitching = true;
           currentIndex = nextIdx;
           $popup.find('.desc__body').slideUp(0);
           updatePopupContent(nextIdx);
@@ -1428,12 +1432,13 @@ $(function () {
           requestAnimationFrame(function () {
             requestAnimationFrame(function () {
               $inn.css({ transition: 'transform 0.25s ease, opacity 0.25s ease', transform: '', opacity: 1 });
-              setTimeout(function () { isSwitching = false; }, 300);
+              setTimeout(function () { isSwitching = false; }, 250);
             });
           });
           axis = null;
         }, 200);
       }, { passive: true });
+
     })();
 
   })();
