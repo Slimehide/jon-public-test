@@ -878,10 +878,10 @@ $(function () {
     $(entry.box).find('.icon-play').show();
     $(entry.box).find('.icon-pause').hide();
   }
-  $('body').on("click" , '.video__box.playing' , function(e){
+  $('body').on("click" , '.video__box' , function(e){
+    if ($(e.target).closest('.video__btn').length) return;
     e.preventDefault();
     $('.video__btn').click();
-    $('.video__box').removeClass("playing");
   })
   $('.video__box').each(function () {
     const $box = $(this);
@@ -973,23 +973,10 @@ $(function () {
     ];
 
     var $grid = $('.templates__grid');
-    $grid.empty();
 
-    PROJECTS.forEach(function(project, index) {
-      var $elem = $(
-        '<div class="elem" data-project-index="' + index + '">' +
-          '<div class="media">' +
-            '<div class="inn">' +
-              '<div class="box"><span>' + project.emoji + '</span></div>' +
-              '<p>' + project.title + '</p>' +
-            '</div>' +
-          '</div>' +
-          '<div class="desc">' +
-            '<p>' + project.description + '</p>' +
-          '</div>' +
-        '</div>'
-      );
-      $grid.append($elem);
+    // Assign project indices to existing grid items
+    $grid.find('.elem').each(function (i) {
+      $(this).attr('data-project-index', i % PROJECTS.length);
     });
 
 
@@ -1247,16 +1234,26 @@ $(function () {
       openPopup(index);
     });
 
+    var $subscribePopup = $('.subscribe__popup');
+
     $popup.on('click', '.btn-popup__email', function (e) {
       e.preventDefault();
       e.stopPropagation();
-      closePopup();
-      var $form = $('.bottom__controls .mobile-info');
-      if ($form.length) {
-        var scrollEl = $('.page-scroll')[0];
-        var formTop = $form.offset().top + scrollEl.scrollTop - 100;
-        $(scrollEl).animate({ scrollTop: formTop }, 500);
-        setTimeout(function () { $form.find('input[type="email"]').focus(); }, 550);
+      if (popupVideoEl && !popupVideoEl.paused) {
+        popupVideoEl.pause();
+        videoPlaying = false;
+        userPaused = true;
+      }
+      $subscribePopup.fadeIn(250);
+    });
+
+    $subscribePopup.find('.popup__close').on('click', function () {
+      $subscribePopup.fadeOut(250);
+    });
+
+    $subscribePopup.on('click', function (e) {
+      if ($(e.target).closest('.box').length === 0) {
+        $subscribePopup.fadeOut(250);
       }
     });
 

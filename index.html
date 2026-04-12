@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<title>GalaxyBrain</title>
 	<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 font-family=%22Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif%22>🧠</text></svg>">
 	<link rel="stylesheet" href="css/style.css">
@@ -93,15 +93,39 @@
 		<div class="video__box" data-vimeo-id="1180963509" data-vimeo-hash="4592aa816a">
 		  <a href="#" class="video__btn">
 		    <svg class="icon-play" width="84" height="84" viewBox="0 0 84 84" fill="none" xmlns="http://www.w3.org/2000/svg">
-		      <circle cx="42" cy="42" r="42" fill="#414141" fill-opacity="0.88"/>
-		      <circle cx="42" cy="42" r="41.5" stroke="#6D6D6D" stroke-opacity="0.25"/>
-		      <path d="M36.9104 31.8995C36.9104 30.2225 38.8503 29.2902 40.1598 30.3378L52.3449 40.0867C53.3457 40.8874 53.3457 42.4095 52.3449 43.2101L40.1598 52.959C38.8503 54.0067 36.9104 53.0744 36.9104 51.3973L36.9104 31.8995Z" fill="#282424"/>
+		      <circle cx="42" cy="42" r="41.5" fill="#232323" fill-opacity="0.7"/>
+		      <circle cx="42" cy="42" r="41.5" fill="url(#hero_play_bg)" fill-opacity="0.2"/>
+		      <circle cx="42" cy="42" r="41.5" stroke="#6D6D6D" stroke-opacity="0.25" stroke-width="0.6"/>
+		      <circle cx="42" cy="42" r="41.5" stroke="url(#hero_play_stroke)" stroke-width="0.6"/>
+		      <path d="M36.9104 31.8995C36.9104 30.2225 38.8503 29.2902 40.1598 30.3378L52.3449 40.0867C53.3457 40.8874 53.3457 42.4095 52.3449 43.2101L40.1598 52.959C38.8503 54.0067 36.9104 53.0744 36.9104 51.3973L36.9104 31.8995Z" fill="#D97657"/>
+		      <defs>
+		        <linearGradient id="hero_play_bg" x1="18" y1="10" x2="88" y2="112" gradientUnits="userSpaceOnUse">
+		          <stop stop-color="#D97657" stop-opacity="0"/>
+		          <stop offset="1" stop-color="#D97657"/>
+		        </linearGradient>
+		        <linearGradient id="hero_play_stroke" x1="37" y1="29" x2="92" y2="81" gradientUnits="userSpaceOnUse">
+		          <stop stop-opacity="0"/>
+		          <stop offset="1" stop-color="#D97657"/>
+		        </linearGradient>
+		      </defs>
 		    </svg>
 		    <svg class="icon-pause" width="84" height="84" viewBox="0 0 84 84" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none;">
-		      <circle cx="42" cy="42" r="42" fill="#414141" fill-opacity="0.88"/>
-		      <circle cx="42" cy="42" r="41.5" stroke="#6D6D6D" stroke-opacity="0.25"/>
-		      <rect x="30" y="28" width="9" height="28" rx="2" fill="#282424"/>
-		      <rect x="45" y="28" width="9" height="28" rx="2" fill="#282424"/>
+		      <circle cx="42" cy="42" r="41.5" fill="#232323" fill-opacity="0.7"/>
+		      <circle cx="42" cy="42" r="41.5" fill="url(#hero_pause_bg)" fill-opacity="0.2"/>
+		      <circle cx="42" cy="42" r="41.5" stroke="#6D6D6D" stroke-opacity="0.25" stroke-width="0.6"/>
+		      <circle cx="42" cy="42" r="41.5" stroke="url(#hero_pause_stroke)" stroke-width="0.6"/>
+		      <rect x="30" y="28" width="9" height="28" rx="2" fill="#D97657"/>
+		      <rect x="45" y="28" width="9" height="28" rx="2" fill="#D97657"/>
+		      <defs>
+		        <linearGradient id="hero_pause_bg" x1="18" y1="10" x2="88" y2="112" gradientUnits="userSpaceOnUse">
+		          <stop stop-color="#D97657" stop-opacity="0"/>
+		          <stop offset="1" stop-color="#D97657"/>
+		        </linearGradient>
+		        <linearGradient id="hero_pause_stroke" x1="37" y1="29" x2="92" y2="81" gradientUnits="userSpaceOnUse">
+		          <stop stop-opacity="0"/>
+		          <stop offset="1" stop-color="#D97657"/>
+		        </linearGradient>
+		      </defs>
 		    </svg>
 		  </a>
 		</div>
@@ -165,165 +189,63 @@
 			<h2>Find all the best templates <br> and set-ups built by Notion’s <br> community</h2>
 			<div class="templates__grid">
 				<div class="elem">
-					<div class="media">
-						<div class="inn">
-							<div class="box">
-								<span>⚽</span>
-							</div>
-							<p>The Premier League</p>
+					<div class="author">
+						<p>Jon-Paul Wheatley</p>
+						
+					</div>
+					<div class="screen">
+						<div class="media--box">
+							<img src="img/image1.webp" alt="image">
 						</div>
-					</div>
-					<div class="desc">
-						<p>Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.</p>
-					</div>
-				</div>
-				<div class="elem">
-					<div class="media">
-						<div class="inn">
-							<div class="box">
-								<span>⚽</span>
-							</div>
-							<p>The Premier League</p>
-						</div>
-					</div>
-					<div class="desc">
-						<p>Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.</p>
-					</div>
-				</div>
-				<div class="elem">
-					<div class="media">
-						<div class="inn">
-							<div class="box">
-								<span>⚽</span>
-							</div>
-							<p>The Premier League</p>
-						</div>
-					</div>
-					<div class="desc">
-						<p>Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.</p>
-					</div>
-				</div>
-				<div class="elem">
-					<div class="media">
-						<div class="inn">
-							<div class="box">
-								<span>⚽</span>
-							</div>
-							<p>The Premier League</p>
-						</div>
-					</div>
-					<div class="desc">
-						<p>Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.</p>
+						<span><img src="img/play-btn.svg" alt="play-btn"></span>
+						<img src="img/screen-1.png" alt="screen-1">
 					</div>
 				</div>
 
 
 				<div class="elem">
-					<div class="media">
-						<div class="inn">
-							<div class="box">
-								<span>⚽</span>
-							</div>
-							<p>The Premier League</p>
-						</div>
+					<div class="author">
+						<p>Nikola Uzunov</p>
+						
 					</div>
-					<div class="desc">
-						<p>Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.</p>
+					<div class="screen">
+						<div class="media--box">
+							<img src="img/image2.webp" alt="image">
+						</div>
+						<span><img src="img/play-btn.svg" alt="play-btn"></span>
+						<img src="img/screen-2.png" alt="screen-1">
 					</div>
 				</div>
+
 				<div class="elem">
-					<div class="media">
-						<div class="inn">
-							<div class="box">
-								<span>⚽</span>
-							</div>
-							<p>The Premier League</p>
+					<div class="author">
+						<p>Jon-Paul Wheatley</p>
+						
+					</div>
+					<div class="screen">
+						<div class="media--box">
+							<img src="img/image1.webp" alt="image">
 						</div>
-					</div>
-					<div class="desc">
-						<p>Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.</p>
-					</div>
-				</div>
-				<div class="elem">
-					<div class="media">
-						<div class="inn">
-							<div class="box">
-								<span>⚽</span>
-							</div>
-							<p>The Premier League</p>
-						</div>
-					</div>
-					<div class="desc">
-						<p>Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.</p>
-					</div>
-				</div>
-				<div class="elem">
-					<div class="media">
-						<div class="inn">
-							<div class="box">
-								<span>⚽</span>
-							</div>
-							<p>The Premier League</p>
-						</div>
-					</div>
-					<div class="desc">
-						<p>Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.</p>
+						<span><img src="img/play-btn.svg" alt="play-btn"></span>
+						<img src="img/screen-1.png" alt="screen-1">
 					</div>
 				</div>
 
 
 				<div class="elem">
-					<div class="media">
-						<div class="inn">
-							<div class="box">
-								<span>⚽</span>
-							</div>
-							<p>The Premier League</p>
-						</div>
+					<div class="author">
+						<p>Nikola Uzunov</p>
+						
 					</div>
-					<div class="desc">
-						<p>Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.</p>
+					<div class="screen">
+						<div class="media--box">
+							<img src="img/image2.webp" alt="image">
+						</div>
+						<span><img src="img/play-btn.svg" alt="play-btn"></span>
+						<img src="img/screen-2.png" alt="screen-1">
 					</div>
 				</div>
-				<div class="elem">
-					<div class="media">
-						<div class="inn">
-							<div class="box">
-								<span>⚽</span>
-							</div>
-							<p>The Premier League</p>
-						</div>
-					</div>
-					<div class="desc">
-						<p>Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.</p>
-					</div>
-				</div>
-				<div class="elem">
-					<div class="media">
-						<div class="inn">
-							<div class="box">
-								<span>⚽</span>
-							</div>
-							<p>The Premier League</p>
-						</div>
-					</div>
-					<div class="desc">
-						<p>Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.</p>
-					</div>
-				</div>
-				<div class="elem">
-					<div class="media">
-						<div class="inn">
-							<div class="box">
-								<span>⚽</span>
-							</div>
-							<p>The Premier League</p>
-						</div>
-					</div>
-					<div class="desc">
-						<p>Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.</p>
-					</div>
-				</div>
+				
 			</div>
 		</div>
 	</div>
@@ -360,7 +282,20 @@
 	</footer>
 	</div>
 
-
+	<div class="subscribe__popup" style="display:none;">
+		<button class="popup__close">&times;</button>
+		<div class="inner">
+			<div class="box">
+				<div class="media__box"><span>🧠</span></div>
+				<p>Galaxybrain is only available on <br> Desktop(for now)</p>
+				<span>Any changes you make will be lost on <br> refresh. GalaxyBrain stores </span>
+				<form action="">
+					<input type="text" placeholder="Email Address">
+					<button type="submit" class="btn">Subscribe</button>
+				</form>
+			</div>
+		</div>
+	</div>
 	<div class="project__popup">
 		<button class="popup__close">&times;</button>
 		<div class="float__controls">
@@ -376,7 +311,7 @@
 					<div class="video"></div>
 					<div class="btn-popup">
 						<a href="#" class="btn-popup__download">Download Project <span><img src="img/arrow-down.svg" alt="arrow-down"></span></a>
-						<a href="#" class="btn-popup__email">Get the link ✉️</a>
+						<a href="#" class="btn-popup__email">Get the link</a>
 					</div>
 					<div class="desc">
 						<div class="desc__header">
