@@ -1702,6 +1702,7 @@ body.is-touch-device .top__info .right>p  , body.is-touch-device .top__info .rig
 	border-radius:3px!important;	
 }
 @media (max-width: 1921px){
+
 	.main__flow{
 		padding-top: 15px;
 	}
@@ -1813,6 +1814,9 @@ body.is-touch-device .top__info .right>p  , body.is-touch-device .top__info .rig
 	}
 }
 @media (max-width: 991px){
+	.bottom__info .middle{
+		max-width: 100%;
+	}
 	.main__flow .top__info>.left>p{
 		font-size: 15px;
 		line-height: 21px;
@@ -2030,6 +2034,9 @@ body.is-touch-device .top__info .right>p  , body.is-touch-device .top__info .rig
 	}
 }
 @media (max-width: 480px){
+	.floating-new-item{
+		margin-top: 2px;
+	}
 	.templates__grid .elem .author .media--box{
 		bottom:-30px;
 	}
