@@ -1207,15 +1207,11 @@ $(function () {
     var playPollTimer = 0;
 
     function loadVideo(project, index) {
-      // Stop any previous video cleanly
       clearInterval(playPollTimer);
-      if (popupVideoEl) {
-        var oldVideo = popupVideoEl;
-        popupVideoEl = null;
-        oldVideo.pause();
-        oldVideo.removeAttribute('src');
-        oldVideo.load();
-      }
+      // Detach old video — just null the reference and empty the container.
+      // Don't call pause/load on the old element as it fires events that
+      // interfere with the browser's media pipeline for the new video.
+      popupVideoEl = null;
       $videoContainer.empty();
       cancelAnimationFrame(progressRAF);
       userPaused = false;
@@ -1242,7 +1238,7 @@ $(function () {
           clearInterval(playPollTimer);
           return;
         }
-        if (userPaused) return;
+        if (userPaused || vid.ended) return;
         if (vid.paused) {
           vid.play().catch(function () {});
           videoPlaying = true;
@@ -1250,7 +1246,7 @@ $(function () {
       }, 300);
 
       $video.on('canplay', function () {
-        if (vid !== popupVideoEl || userPaused) return;
+        if (vid !== popupVideoEl || userPaused || vid.ended) return;
         if (vid.paused) {
           vid.play().catch(function () {});
           videoPlaying = true;
@@ -1259,6 +1255,7 @@ $(function () {
 
       $video.on('pause', function () {
         if (vid !== popupVideoEl || userPaused || !isOpen) return;
+        if (vid.ended) return;
         vid.play().catch(function () {});
         videoPlaying = true;
       });
@@ -1358,7 +1355,7 @@ $(function () {
     }
 
     function forcePlayVideo() {
-      if (!popupVideoEl || userPaused || !isOpen) return;
+      if (!popupVideoEl || userPaused || !isOpen || popupVideoEl.ended) return;
       popupVideoEl.play().catch(function () {});
       videoPlaying = true;
     }
