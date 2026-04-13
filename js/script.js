@@ -1179,24 +1179,30 @@ $(function () {
 
     var videoPlaying = false;
     var popupVideoEl = null;
-    var videoCache = {};
+    var blobCache = {};
 
+    // Pre-fetch video files into blob cache. Each load creates a fresh
+    // blob URL to avoid browser decoder issues with reused blob URLs.
     PROJECTS.forEach(function (p) {
-      if (videoCache[p.videoSrc]) return;
-      videoCache[p.videoSrc] = 'loading';
+      if (blobCache[p.videoSrc]) return;
+      blobCache[p.videoSrc] = 'loading';
       fetch(p.videoSrc)
         .then(function (r) { return r.blob(); })
         .then(function (blob) {
-          videoCache[p.videoSrc] = URL.createObjectURL(blob);
+          blobCache[p.videoSrc] = blob;
         })
         .catch(function () {
-          videoCache[p.videoSrc] = p.videoSrc;
+          blobCache[p.videoSrc] = null;
         });
     });
 
     function getVideoSrc(project) {
-      var cached = videoCache[project.videoSrc];
-      return (cached && cached !== 'loading') ? cached : project.videoSrc;
+      var blob = blobCache[project.videoSrc];
+      if (blob && blob !== 'loading') {
+        // Fresh blob URL every time — avoids decoder reuse bugs
+        return URL.createObjectURL(blob);
+      }
+      return project.videoSrc;
     }
 
     var progressRAF = 0;
@@ -1205,19 +1211,29 @@ $(function () {
 
     var swipeActive = false;
     var playPollTimer = 0;
+    var currentBlobUrl = null;
 
     function loadVideo(project, index) {
       clearInterval(playPollTimer);
-      // Detach old video — just null the reference and empty the container.
-      // Don't call pause/load on the old element as it fires events that
-      // interfere with the browser's media pipeline for the new video.
       popupVideoEl = null;
       $videoContainer.empty();
       cancelAnimationFrame(progressRAF);
       userPaused = false;
 
+      // Revoke previous blob URL to prevent memory leak
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
+      }
+
+      var src = getVideoSrc(project);
+      // Track if this is a blob URL so we can revoke it later
+      if (src.indexOf('blob:') === 0) {
+        currentBlobUrl = src;
+      }
+
       var $video = $('<video autoplay playsinline></video>');
-      $video.attr('src', getVideoSrc(project));
+      $video.attr('src', src);
       var $overlay = $('<div class="video__overlay"></div>');
       var $progress = $('<div class="video__progress"><div class="video__progress-bar"></div></div>');
       $videoContainer.append($video).append($overlay).append($progress);
@@ -1294,14 +1310,12 @@ $(function () {
     function destroyVideo() {
       clearInterval(playPollTimer);
       cancelAnimationFrame(progressRAF);
-      var vid = popupVideoEl;
       popupVideoEl = null;
-      if (vid) {
-        vid.pause();
-        vid.removeAttribute('src');
-        vid.load();
-      }
       $videoContainer.empty();
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
+      }
     }
 
 
