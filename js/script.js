@@ -1179,6 +1179,31 @@ $(function () {
 
     var videoPlaying = false;
     var popupVideoEl = null;
+    var blobCache = {};
+
+    // Pre-fetch video files into blob cache. Each load creates a fresh
+    // blob URL to avoid browser decoder issues with reused blob URLs.
+    PROJECTS.forEach(function (p) {
+      if (blobCache[p.videoSrc]) return;
+      blobCache[p.videoSrc] = 'loading';
+      fetch(p.videoSrc)
+        .then(function (r) { return r.blob(); })
+        .then(function (blob) {
+          blobCache[p.videoSrc] = blob;
+        })
+        .catch(function () {
+          blobCache[p.videoSrc] = null;
+        });
+    });
+
+    function getVideoSrc(project) {
+      var blob = blobCache[project.videoSrc];
+      if (blob && blob !== 'loading') {
+        // Fresh blob URL every time — avoids decoder reuse bugs
+        return URL.createObjectURL(blob);
+      }
+      return project.videoSrc;
+    }
 
     var progressRAF = 0;
 
@@ -1186,6 +1211,7 @@ $(function () {
 
     var swipeActive = false;
     var playPollTimer = 0;
+    var currentBlobUrl = null;
 
     function loadVideo(project, index) {
       clearInterval(playPollTimer);
@@ -1194,11 +1220,29 @@ $(function () {
       cancelAnimationFrame(progressRAF);
       userPaused = false;
 
+      // Revoke previous blob URL to prevent memory leak
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
+      }
+
+      var src = getVideoSrc(project);
+      // Track if this is a blob URL so we can revoke it later
+      if (src.indexOf('blob:') === 0) {
+        currentBlobUrl = src;
+      }
+
       var $video = $('<video autoplay playsinline></video>');
-      $video.attr('src', project.videoSrc);
+      $video.attr('src', src);
       var $overlay = $('<div class="video__overlay"></div>');
+      var $playBtn = $('<button class="popup-play-btn" style="display:none;">' +
+        '<svg width="84" height="84" viewBox="0 0 84 84" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+        '<circle cx="42" cy="42" r="41.5" fill="#232323" fill-opacity="0.7"/>' +
+        '<circle cx="42" cy="42" r="41.5" stroke="#6D6D6D" stroke-opacity="0.25" stroke-width="0.6"/>' +
+        '<path d="M36.9104 31.8995C36.9104 30.2225 38.8503 29.2902 40.1598 30.3378L52.3449 40.0867C53.3457 40.8874 53.3457 42.4095 52.3449 43.2101L40.1598 52.959C38.8503 54.0067 36.9104 53.0744 36.9104 51.3973L36.9104 31.8995Z" fill="#D97657"/>' +
+        '</svg></button>');
       var $progress = $('<div class="video__progress"><div class="video__progress-bar"></div></div>');
-      $videoContainer.append($video).append($overlay).append($progress);
+      $videoContainer.append($video).append($overlay).append($playBtn).append($progress);
 
       var $bar = $progress.find('.video__progress-bar');
       var vid = $video[0];
@@ -1207,19 +1251,25 @@ $(function () {
 
       vid.play().catch(function () {});
 
-      // Poll every 300ms until the video is actually playing.
-      // This catches every case: slow load, browser pause from CSS animation,
-      // race conditions between swipe and load. Stops only when video is
-      // playing, user paused, popup closed, or video replaced.
+      var pollCount = 0;
+
       playPollTimer = setInterval(function () {
         if (vid !== popupVideoEl || !isOpen) {
           clearInterval(playPollTimer);
           return;
         }
         if (userPaused || vid.ended) return;
+        pollCount++;
         if (vid.paused) {
           vid.play().catch(function () {});
           videoPlaying = true;
+          // After ~2s of failed attempts, show the play button as fallback
+          if (pollCount >= 7) {
+            $playBtn.fadeIn(200);
+          }
+        } else {
+          // Video is playing — hide button if it was shown
+          $playBtn.hide();
         }
       }, 300);
 
@@ -1229,6 +1279,12 @@ $(function () {
           vid.play().catch(function () {});
           videoPlaying = true;
         }
+      });
+
+      $video.on('playing', function () {
+        if (vid !== popupVideoEl) return;
+        $playBtn.hide();
+        videoPlaying = true;
       });
 
       $video.on('pause', function () {
@@ -1274,6 +1330,10 @@ $(function () {
       cancelAnimationFrame(progressRAF);
       popupVideoEl = null;
       $videoContainer.empty();
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
+      }
     }
 
 
@@ -1416,6 +1476,15 @@ $(function () {
       e.stopPropagation();
       if (swipeDone) { swipeDone = false; return; }
       toggleVideo();
+    });
+
+    $popup.on('click', '.popup-play-btn', function (e) {
+      e.stopPropagation();
+      if (!popupVideoEl) return;
+      userPaused = false;
+      popupVideoEl.play().catch(function () {});
+      videoPlaying = true;
+      $(this).hide();
     });
 
     $popup.on('click', '.desc', function (e) {

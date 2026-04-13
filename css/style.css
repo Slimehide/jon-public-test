@@ -1041,6 +1041,24 @@ footer>ul:nth-child(2){
 	z-index: 1;
 	cursor: pointer;
 }
+.popup-play-btn{
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 4;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	outline: none;
+}
+.popup-play-btn svg{
+	transition: transform .2s ease;
+}
+.popup-play-btn:hover svg{
+	transform: scale(1.08);
+}
 .project__popup>.inner .box .inn .video .video__progress{
 	position: absolute;
 	bottom: 0;
