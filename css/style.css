@@ -1622,9 +1622,6 @@ body.is-touch-device .top__info .right>p  , body.is-touch-device .top__info .rig
     border: 1px solid rgba(217, 118, 87, 0.8);
     background-color: rgba(217, 118, 87, 0.05);
 }
-.project__popup>.inner .box .inn .desc .desc__author{
-
-}
 .project__popup>.inner .box .inn .desc{
 	padding-left: 15px;
 	padding-right: 15px;
@@ -1650,7 +1647,7 @@ body.is-touch-device .top__info .right>p  , body.is-touch-device .top__info .rig
 	max-height: 30px;
 }
 .project__popup>.inner .box .inn .desc .desc__body .desc__detail .media>span{
-	font-size: 16px;
+	font-size: 14px;
 }
 .project__popup>.inner .box .inn .desc .desc__body .desc__detail{
 	padding-top: 0px;

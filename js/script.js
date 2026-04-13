@@ -1214,6 +1214,14 @@ $(function () {
     var swipeActive = false;
 
     function loadVideo(project, index) {
+      // Stop any previous video cleanly
+      if (popupVideoEl) {
+        var oldVideo = popupVideoEl;
+        popupVideoEl = null; // Detach reference first so pause handler ignores it
+        oldVideo.pause();
+        oldVideo.removeAttribute('src');
+        oldVideo.load();
+      }
       $videoContainer.empty();
       cancelAnimationFrame(progressRAF);
       userPaused = false;
@@ -1225,36 +1233,47 @@ $(function () {
       $videoContainer.append($video).append($overlay).append($progress);
 
       var $bar = $progress.find('.video__progress-bar');
-      popupVideoEl = $video[0];
+      var vid = $video[0];
+      popupVideoEl = vid;
       videoPlaying = true;
 
       function ensurePlaying() {
-        if (!popupVideoEl || userPaused || !isOpen) return;
-        if (popupVideoEl.paused && popupVideoEl.readyState >= 1) {
-          popupVideoEl.play().catch(function () {});
+        // Only resume if this is still the active video, user hasn't paused, and popup is open
+        if (vid !== popupVideoEl || userPaused || !isOpen) return;
+        if (vid.paused) {
+          vid.play().catch(function () {});
           videoPlaying = true;
         }
       }
 
-      popupVideoEl.play().catch(function () {});
+      vid.play().catch(function () {});
 
-      $video.on('canplay', ensurePlaying);
+      $video.on('canplay', function () {
+        if (vid !== popupVideoEl) return;
+        ensurePlaying();
+      });
+
+      // ANY pause that isn't user-initiated gets immediately reversed
       $video.on('pause', function () {
+        if (vid !== popupVideoEl) return;
         if (!userPaused && isOpen) {
           ensurePlaying();
-          setTimeout(ensurePlaying, 30);
+          setTimeout(function () { ensurePlaying(); }, 16);
+          setTimeout(function () { ensurePlaying(); }, 80);
+          setTimeout(function () { ensurePlaying(); }, 200);
         }
       });
 
       function updateProgress() {
-        if (!popupVideoEl) return;
-        var pct = popupVideoEl.duration ? (popupVideoEl.currentTime / popupVideoEl.duration) * 100 : 0;
+        if (vid !== popupVideoEl) return;
+        var pct = vid.duration ? (vid.currentTime / vid.duration) * 100 : 0;
         $bar.css('width', pct + '%');
         progressRAF = requestAnimationFrame(updateProgress);
       }
       progressRAF = requestAnimationFrame(updateProgress);
 
       $video.on('ended', function () {
+        if (vid !== popupVideoEl) return;
         cancelAnimationFrame(progressRAF);
         $bar.css('width', '100%');
         if (!isOpen) return;
@@ -1265,24 +1284,25 @@ $(function () {
 
     function toggleVideo() {
       if (!popupVideoEl) return;
-      if (videoPlaying) {
-        popupVideoEl.pause();
+      if (!userPaused && !popupVideoEl.paused) {
+        userPaused = true;   // Set flag BEFORE pausing so handler doesn't resume
         videoPlaying = false;
-        userPaused = true;
+        popupVideoEl.pause();
       } else {
-        popupVideoEl.play();
-        videoPlaying = true;
         userPaused = false;
+        videoPlaying = true;
+        popupVideoEl.play().catch(function () {});
       }
     }
 
     function destroyVideo() {
       cancelAnimationFrame(progressRAF);
-      if (popupVideoEl) {
-        popupVideoEl.pause();
-        popupVideoEl.removeAttribute('src');
-        popupVideoEl.load();
-        popupVideoEl = null;
+      var vid = popupVideoEl;
+      popupVideoEl = null; // Detach first so pause handler doesn't try to resume
+      if (vid) {
+        vid.pause();
+        vid.removeAttribute('src');
+        vid.load();
       }
       $videoContainer.empty();
     }
@@ -1378,9 +1398,9 @@ $(function () {
       e.preventDefault();
       e.stopPropagation();
       if (popupVideoEl && !popupVideoEl.paused) {
-        popupVideoEl.pause();
+        userPaused = true;   // Set flag BEFORE pausing so handler doesn't resume
         videoPlaying = false;
-        userPaused = true;
+        popupVideoEl.pause();
       }
       $subscribePopup.fadeIn(250);
     });
