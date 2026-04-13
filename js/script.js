@@ -1526,6 +1526,10 @@ $(function () {
 
       el.addEventListener('touchstart', function (e) {
         if (!isOpen) return;
+        // Block swipe entirely during cooldown — don't even track the gesture
+        if (isSwitching) return;
+        var now = Date.now();
+        if (now - lastSwitchTime < switchCooldown) return;
         var t = e.touches[0];
         startX = t.clientX;
         startY = t.clientY;
@@ -1535,7 +1539,6 @@ $(function () {
         swipeHandled = false;
         axis = null;
         swipeActive = true;
-        swipeVideoWasPlaying = popupVideoEl && !popupVideoEl.paused;
         $inn.css('transition', 'none');
       }, { passive: true });
 
@@ -1598,8 +1601,10 @@ $(function () {
           // Enforce same cooldown as switchProject
           var now = Date.now();
           if (isSwitching || (now - lastSwitchTime < switchCooldown)) {
-            // Blocked — snap back
+            // Blocked — snap back and force play
             $inn.css({ transition: 'transform 0.25s ease, opacity 0.25s ease', transform: '', opacity: 1 });
+            forcePlayVideo();
+            setTimeout(forcePlayVideo, 300);
             axis = null;
             return;
           }
@@ -1644,8 +1649,10 @@ $(function () {
           return;
         }
 
-        // Not enough movement — snap back
+        // Not enough movement — snap back and force video to play
         $inn.css({ transition: 'transform 0.25s ease, opacity 0.25s ease', transform: '', opacity: 1 });
+        forcePlayVideo();
+        setTimeout(forcePlayVideo, 300);
         axis = null;
       }, { passive: true });
 
