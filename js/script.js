@@ -1084,15 +1084,7 @@ $(function () {
       { emoji: '⚽', title: 'The Premier League', description: 'Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.', videoSrc: 'videos/img_6197.mov', downloadUrl: '#' },
       { emoji: '🔴', title: 'The Pokedex', description: 'A living encyclopedia of every known Pokémon. Browse stats, evolutions, and types across all generations.', videoSrc: 'videos/img_6198.mov', downloadUrl: '#' },
       { emoji: '💸', title: 'S&P 500 Tracker', description: 'Real-time market overview of all S&P 500 companies. Track prices, sectors, and historical performance.', videoSrc: 'videos/img_6197.mov', downloadUrl: '#' },
-      { emoji: '⛏️', title: 'Minecraft Database', description: 'Complete reference for blocks, items, mobs, and crafting recipes. Everything you need for your next build.', videoSrc: 'videos/img_6198.mov', downloadUrl: '#' },
-      { emoji: '🍳', title: 'Recipe Collection', description: 'Organize your favorite recipes with ingredients, steps, and nutritional info. Plan meals for the week ahead.', videoSrc: 'videos/img_6197.mov', downloadUrl: '#' },
-      { emoji: '🎬', title: 'Movie Watchlist', description: 'Track films you want to watch and ones you have seen. Rate, review, and discover new favorites.', videoSrc: 'videos/img_6198.mov', downloadUrl: '#' },
-      { emoji: '🏋️', title: 'Workout Planner', description: 'Design custom workout routines. Log sets, reps, and progress over time with built-in analytics.', videoSrc: 'videos/img_6197.mov', downloadUrl: '#' },
-      { emoji: '✈️', title: 'Travel Journal', description: 'Document your trips with photos, maps, and notes. Plan itineraries and track expenses on the go.', videoSrc: 'videos/img_6198.mov', downloadUrl: '#' },
-      { emoji: '📚', title: 'Book Library', description: 'Catalog your reading list. Track progress, write notes, and get recommendations based on your taste.', videoSrc: 'videos/img_6197.mov', downloadUrl: '#' },
-      { emoji: '✅', title: 'Habit Tracker', description: 'Build better habits with daily check-ins and streak tracking. Visualize your consistency over months.', videoSrc: 'videos/img_6198.mov', downloadUrl: '#' },
-      { emoji: '🎵', title: 'Music Catalog', description: 'Organize albums, playlists, and artists. Rate tracks and discover connections across your library.', videoSrc: 'videos/img_6197.mov', downloadUrl: '#' },
-      { emoji: '🌱', title: 'Plant Care Guide', description: 'Keep your plants alive with watering schedules, sunlight needs, and seasonal care reminders.', videoSrc: 'videos/img_6198.mov', downloadUrl: '#' }
+      { emoji: '⛏️', title: 'Minecraft Database', description: 'Complete reference for blocks, items, mobs, and crafting recipes. Everything you need for your next build.', videoSrc: 'videos/img_6198.mov', downloadUrl: '#' }
     ];
 
     var $grid = $('.templates__grid');
@@ -1357,12 +1349,18 @@ $(function () {
       $popup.find('.inner').css({ padding: '' });
     }
 
+    var switchCooldown = 600;
+    var lastSwitchTime = 0;
+
     function switchProject(newIndex, direction) {
       if (newIndex === currentIndex) return;
       if (isSwitching) return;
+      var now = Date.now();
+      if (now - lastSwitchTime < switchCooldown) return;
+      lastSwitchTime = now;
       isSwitching = true;
       clearTimeout(switchSafetyTimer);
-      switchSafetyTimer = setTimeout(function () { isSwitching = false; }, 1000);
+      switchSafetyTimer = setTimeout(function () { isSwitching = false; }, 1200);
 
       var dir = direction || (newIndex > currentIndex ? 1 : -1);
       var $inn = $popup.find('.inner .box .inn');
@@ -1381,7 +1379,7 @@ $(function () {
         requestAnimationFrame(function () {
           requestAnimationFrame(function () {
             $inn.css({ transition: 'transform 0.25s ease, opacity 0.25s ease', transform: '', opacity: 1 });
-            setTimeout(function () { isSwitching = false; }, 300);
+            setTimeout(function () { isSwitching = false; }, 350);
           });
         });
       }, 200);
