@@ -1204,12 +1204,14 @@ $(function () {
     var userPaused = false;
 
     var swipeActive = false;
+    var playPollTimer = 0;
 
     function loadVideo(project, index) {
       // Stop any previous video cleanly
+      clearInterval(playPollTimer);
       if (popupVideoEl) {
         var oldVideo = popupVideoEl;
-        popupVideoEl = null; // Detach reference first so pause handler ignores it
+        popupVideoEl = null;
         oldVideo.pause();
         oldVideo.removeAttribute('src');
         oldVideo.load();
@@ -1229,32 +1231,36 @@ $(function () {
       popupVideoEl = vid;
       videoPlaying = true;
 
-      function ensurePlaying() {
-        // Only resume if this is still the active video, user hasn't paused, and popup is open
-        if (vid !== popupVideoEl || userPaused || !isOpen) return;
+      vid.play().catch(function () {});
+
+      // Poll every 300ms until the video is actually playing.
+      // This catches every case: slow load, browser pause from CSS animation,
+      // race conditions between swipe and load. Stops only when video is
+      // playing, user paused, popup closed, or video replaced.
+      playPollTimer = setInterval(function () {
+        if (vid !== popupVideoEl || !isOpen) {
+          clearInterval(playPollTimer);
+          return;
+        }
+        if (userPaused) return;
         if (vid.paused) {
           vid.play().catch(function () {});
           videoPlaying = true;
         }
-      }
-
-      vid.play().catch(function () {});
+      }, 300);
 
       $video.on('canplay', function () {
-        if (vid !== popupVideoEl) return;
-        ensurePlaying();
+        if (vid !== popupVideoEl || userPaused) return;
+        if (vid.paused) {
+          vid.play().catch(function () {});
+          videoPlaying = true;
+        }
       });
 
-      // ANY pause that isn't user-initiated gets immediately reversed
       $video.on('pause', function () {
-        if (vid !== popupVideoEl) return;
-        if (!userPaused && isOpen) {
-          ensurePlaying();
-          setTimeout(function () { ensurePlaying(); }, 16);
-          setTimeout(function () { ensurePlaying(); }, 80);
-          setTimeout(function () { ensurePlaying(); }, 200);
-          setTimeout(function () { ensurePlaying(); }, 500);
-        }
+        if (vid !== popupVideoEl || userPaused || !isOpen) return;
+        vid.play().catch(function () {});
+        videoPlaying = true;
       });
 
       function updateProgress() {
@@ -1289,9 +1295,10 @@ $(function () {
     }
 
     function destroyVideo() {
+      clearInterval(playPollTimer);
       cancelAnimationFrame(progressRAF);
       var vid = popupVideoEl;
-      popupVideoEl = null; // Detach first so pause handler doesn't try to resume
+      popupVideoEl = null;
       if (vid) {
         vid.pause();
         vid.removeAttribute('src');
@@ -1356,7 +1363,7 @@ $(function () {
       videoPlaying = true;
     }
 
-    var switchCooldown = 600;
+    var switchCooldown = 1000;
     var lastSwitchTime = 0;
 
     function switchProject(newIndex, direction) {
