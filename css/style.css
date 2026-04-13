@@ -298,8 +298,8 @@ body *{
 }
 .main__flow .top__info>.left>p{
 	margin:0px;
-	font-size: 14px;
-	line-height: 21px;
+	font-size: 19px;
+	line-height: 25px;
 	color:rgba(185, 185, 185, 1);
 	font-weight: 400;
 	opacity:.5;
@@ -605,6 +605,7 @@ body *{
 	text-decoration: none;
 	overflow: hidden;
 }
+
 .floating-new-item .right{
 	text-overflow: ellipsis;
 	text-align: right;
@@ -1436,11 +1437,26 @@ body.popup-open .custom-scrollbar{
 	left: 0;
 	right: 0;
 	width: 100%;
-	background: linear-gradient(to top, rgba(0,0,0,.85) 0%, rgba(0,0,0,.5) 60%, rgba(0,0,0,0) 100%);
+	
 	border-radius: 0 0 12px 12px;
 	z-index: 2;
 	cursor: pointer;
 	padding: 0 24px;
+	background:none!important;
+}
+.project__popup>.inner .box .inn .desc .desc__author , .project__popup>.inner .box .inn .desc .desc__body{
+	position: relative;
+	z-index: 2;
+}
+.project__popup>.inner .box .inn .desc:before{
+	content:"";
+	position: absolute;
+	left:0px;
+	bottom:0px;
+	background: linear-gradient(to top, rgba(0,0,0,1) 25%, rgba(0,0,0,0) 100%);
+	width: 100%;
+	opacity:.6;
+	height: calc(100% + 80px);
 }
 .project__popup>.inner .box .inn .desc .desc__author{
 	display: flex;
@@ -1539,9 +1555,18 @@ body.popup-open .custom-scrollbar{
 	padding:12px;
 	padding-bottom: 18px;
 	/*background-color:rgba(0,0,0,.4);*/
-	background:linear-gradient(to bottom, rgba(0,0,0,.85) 0%, rgba(0,0,0,.5) 60%, rgba(0,0,0,0) 100%);
 	display: flex;
 	justify-content: flex-end;
+}
+.project__popup .inn>.btn-popup:before{
+	content:"";
+	position: absolute;
+	left:0px;
+	top:0px;
+	pointer-events: none;
+	width: 100%;
+	height: calc(100% + 80px);
+	background:linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
 }
 .project__popup>.inner .box .inn .desc .desc__body .desc__detail .desc__text>p{
 	text-align:left;
@@ -1670,7 +1695,128 @@ body.is-touch-device .top__info .right>p  , body.is-touch-device .top__info .rig
 .project__popup>.inner .box .inn .desc .desc__body .desc__detail{
 	padding-top: 0px;
 }
+.project__popup>.inner .box .inn .desc:before{
+	pointer-events: none;
+}
+.bottom__info .middle ul>li{
+	border-radius:3px!important;	
+}
+@media (max-width: 1921px){
+	.main__flow{
+		padding-top: 15px;
+	}
+	.main__flow>.small-title{
+		margin-bottom: 20px;
+	}
+	.main__flow .top__info>.left>h1{
+		font-size: 34px;
+		margin-bottom: 16px;
+	}
+	.main__flow .top__info>.left>p{
+		font-size: 15px;
+		line-height: 21px;
+	}
+	.main__flow .top__info>.right p{
+		font-size: 12px;
+		line-height: 16px;
+	}
+	.floating-new-item{
+		margin-top: -3px;
+	}
+	.bottom__info>.left>h2 span{
+		line-height: 40px;
+	}
+	.btn{
+		min-height: 40px;
+		font-size: 13px;
+	}
+	.btn__box{
+		padding:6px 8px;
+	}
+	.templates__wrapper{
+		margin-top: 30px;
+		padding-top: 30px;
+	}
+	.templates__wrapper>h2{
+		font-size: 24px;
+	}
+	.templates__grid .elem .author>p{
+		font-size: 12px;
+		line-height: 17px;
+	}
+	footer{
+		margin-top: 35px;
+		padding-top: 25px;
+	}
+	footer{
+		max-width: 840px;
+	}
+	footer>ul>li>span{
+		font-size: 12px;
+	}
+	footer>ul>li>a{
+		font-size: 12px;
+	}
+	footer>ul>li{
+		margin-bottom: 1px;
+	}
+	.bottom__controls{
+		margin-top: 15px;
+	}
+	body.is-touch-device .bottom__controls .mobile-info>p{
+		font-size: 12px;
+		line-height: 16px;
+		margin-bottom: 10px;
+	}
+	.floating-new-item .left , .floating-new-item .right{
+		font-size: 12px;
+	}
+	.mobile-info form>input{
+		height: 35px;
+		font-size: 14px;
+	}
+	.mobile-info form button img{
+		width: 16px;
+	}
+	.main__flow .top__info{
+		margin-bottom: 15px;
+	}
+	.main__flow{
+		max-width: 840px;
+	}
+	.bottom__info{
+		margin-top: 40px;
+	}
+	.bottom__info .middle ul>li .right{
+		font-size: 12px;
+	}
+	.bottom__info .middle ul>li .left{
+		font-size: 12px;
+	}
+	.bottom__info .middle ul>li{
+		line-height: 18px;
+	}
+	.bottom__info .middle{
+		max-width: 400px;
+	}
+	.bottom__info>.left>h2{
+		font-size: 34px;
+	}
+	.video__box{
+		margin-bottom: 40px;
+	}
+	.main__flow>.small-title>span{
+		font-size: 12px;
+	}
+	.main__flow>.small-title>a{
+		font-size: 12px;
+	}
+}
 @media (max-width: 991px){
+	.main__flow .top__info>.left>p{
+		font-size: 15px;
+		line-height: 21px;
+	}
 	.templates__wrapper{
 		margin-top: 60px;
 		padding-top: 30px;
@@ -1865,6 +2011,10 @@ body.is-touch-device .top__info .right>p  , body.is-touch-device .top__info .rig
 	.main__flow .top__info>.right p , .main__flow .top__info>.left>p , .main__flow>.small-title>span{
 		font-size: 12px;
 		line-height: 18px;
+	}
+	.main__flow .top__info>.left>p{
+		font-size: 15px;
+		line-height: 21px;	
 	}
 	.main__flow .top__info>.left{
 		max-width: 100%;

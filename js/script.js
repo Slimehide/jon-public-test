@@ -1518,13 +1518,29 @@ $(function () {
       }
     });
 
+    var wheelLocked = false;
+    var wheelUnlockTimer = 0;
+
     $popup[0].addEventListener('wheel', function (e) {
       if (!isOpen) return;
       e.preventDefault();
 
-      var now = Date.now();
-      if (now - lastWheelTime < wheelCooldown) return;
-      lastWheelTime = now;
+      // Every wheel event resets the unlock timer. The lock only
+      // releases 200ms after the LAST event (= gesture fully ended,
+      // including momentum). So one physical gesture can only ever
+      // produce one switch, regardless of speed.
+      if (wheelLocked) {
+        clearTimeout(wheelUnlockTimer);
+        wheelUnlockTimer = setTimeout(function () { wheelLocked = false; }, 200);
+        return;
+      }
+
+      if (isSwitching) return;
+      if (Math.abs(e.deltaY) < 4) return;
+
+      // First meaningful event of a new gesture — trigger switch and lock
+      wheelLocked = true;
+      wheelUnlockTimer = setTimeout(function () { wheelLocked = false; }, 200);
 
       if (e.deltaY > 0) {
         switchProject((currentIndex + 1) % PROJECTS.length, 1);
