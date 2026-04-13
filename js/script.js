@@ -1,6 +1,15 @@
 
 
 
+(function detectTouchDevice() {
+  var ua = navigator.userAgent || '';
+  var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  var isTablet = /iPad|Android(?!.*Mobile)/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isMobile || isTablet) {
+    document.body.classList.add('is-touch-device');
+  }
+})();
+
 $(function () {
    var runtime = window.__auroraRuntime = window.__auroraRuntime || {};
   runtime.qualityState = runtime.qualityState || {
@@ -626,6 +635,120 @@ $(function () {
   capPageScroll();
   $(window).on('resize', capPageScroll);
 
+  (function initCustomScrollbar() {
+    var scrollEl = $pageScroll[0];
+    if (!scrollEl) return;
+
+    var $bar = $('<div class="custom-scrollbar"><div class="custom-scrollbar__track"><div class="custom-scrollbar__thumb"></div></div></div>');
+    $('body').append($bar);
+    var $thumb = $bar.find('.custom-scrollbar__thumb');
+    var thumb = $thumb[0];
+    var hideTimer = null;
+    var dragging = false;
+    var dragStartY = 0;
+    var dragStartScroll = 0;
+    var rafPending = false;
+    var hoverZone = 50;
+    var inZone = false;
+
+    function updateThumb() {
+      var sh = scrollEl.scrollHeight;
+      var ch = scrollEl.clientHeight;
+      if (sh <= ch) {
+        $bar.removeClass('visible');
+        return;
+      }
+      var ratio = ch / sh;
+      var thumbH = Math.max(30, ch * ratio);
+      var maxTravel = ch - thumbH;
+      var scrollFrac = scrollEl.scrollTop / (sh - ch);
+      var thumbTop = scrollFrac * maxTravel;
+      thumb.style.height = thumbH + 'px';
+      thumb.style.top = thumbTop + 'px';
+      rafPending = false;
+    }
+
+    function showBar() {
+      $bar.addClass('visible');
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(function () {
+        if (!dragging && !inZone) $bar.removeClass('visible');
+      }, 1200);
+    }
+
+    scrollEl.addEventListener('scroll', function () {
+      showBar();
+      if (!rafPending) {
+        rafPending = true;
+        requestAnimationFrame(updateThumb);
+      }
+    }, { passive: true });
+
+    $thumb.on('mousedown', function (e) {
+      e.preventDefault();
+      dragging = true;
+      dragStartY = e.clientY;
+      dragStartScroll = scrollEl.scrollTop;
+      $thumb.addClass('dragging');
+      clearTimeout(hideTimer);
+    });
+
+    $(document).on('mousemove.customscroll', function (e) {
+      if (!dragging) return;
+      var sh = scrollEl.scrollHeight;
+      var ch = scrollEl.clientHeight;
+      var thumbH = Math.max(30, ch * (ch / sh));
+      var maxTravel = ch - thumbH;
+      var dy = e.clientY - dragStartY;
+      var scrollRange = sh - ch;
+      scrollEl.scrollTop = dragStartScroll + (dy / maxTravel) * scrollRange;
+    });
+
+    $(document).on('mouseup.customscroll', function () {
+      if (!dragging) return;
+      dragging = false;
+      $thumb.removeClass('dragging');
+      hideTimer = setTimeout(function () {
+        $bar.removeClass('visible');
+      }, 1200);
+    });
+
+    $bar.on('click', function (e) {
+      if ($(e.target).closest('.custom-scrollbar__thumb').length) return;
+      var trackRect = this.getBoundingClientRect();
+      var clickY = e.clientY - trackRect.top;
+      var ratio = clickY / trackRect.height;
+      scrollEl.scrollTop = ratio * (scrollEl.scrollHeight - scrollEl.clientHeight);
+    });
+
+    $(document).on('mousemove.scrollzone', function (e) {
+      if (dragging) return;
+      var fromRight = window.innerWidth - e.clientX;
+      if (fromRight <= hoverZone) {
+        if (!inZone) {
+          inZone = true;
+          updateThumb();
+          showBar();
+        }
+      } else if (inZone) {
+        inZone = false;
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(function () {
+          if (!dragging && !inZone) $bar.removeClass('visible');
+        }, 600);
+      }
+    });
+
+    $(window).on('resize', function () {
+      if (!rafPending) {
+        rafPending = true;
+        requestAnimationFrame(updateThumb);
+      }
+    });
+
+    updateThumb();
+  })();
+
   (function fixMobileScroll() {
     var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     var isAndroid = /Android/.test(navigator.userAgent);
@@ -974,9 +1097,13 @@ $(function () {
 
     var $grid = $('.templates__grid');
 
-    // Assign project indices to existing grid items
     $grid.find('.elem').each(function (i) {
-      $(this).attr('data-project-index', i % PROJECTS.length);
+      var idx = i % PROJECTS.length;
+      $(this).attr('data-project-index', idx);
+      if (!PROJECTS[idx].authorName) {
+        PROJECTS[idx].authorName = $(this).find('.author > p').text();
+        PROJECTS[idx].authorAvatar = $(this).find('.author .media--box img').attr('src');
+      }
     });
 
 
@@ -1062,7 +1189,6 @@ $(function () {
     var popupVideoEl = null;
     var videoCache = {};
 
-    // Preload all videos into blob cache
     PROJECTS.forEach(function (p) {
       if (videoCache[p.videoSrc]) return;
       videoCache[p.videoSrc] = 'loading';
@@ -1085,6 +1211,8 @@ $(function () {
 
     var userPaused = false;
 
+    var swipeActive = false;
+
     function loadVideo(project, index) {
       $videoContainer.empty();
       cancelAnimationFrame(progressRAF);
@@ -1102,8 +1230,9 @@ $(function () {
 
       function ensurePlaying() {
         if (!popupVideoEl || userPaused || !isOpen) return;
-        if (popupVideoEl.paused && popupVideoEl.readyState >= 2) {
+        if (popupVideoEl.paused && popupVideoEl.readyState >= 1) {
           popupVideoEl.play().catch(function () {});
+          videoPlaying = true;
         }
       }
 
@@ -1112,7 +1241,8 @@ $(function () {
       $video.on('canplay', ensurePlaying);
       $video.on('pause', function () {
         if (!userPaused && isOpen) {
-          setTimeout(ensurePlaying, 50);
+          ensurePlaying();
+          setTimeout(ensurePlaying, 30);
         }
       });
 
@@ -1162,11 +1292,19 @@ $(function () {
       var project = PROJECTS[index];
       var $desc = $popup.find('.desc');
 
-      $desc.find('.desc__header .media span').text(project.emoji);
-      $desc.find('.desc__header .desc__title').text(project.title);
       $desc.find('.desc__body .desc__detail .media span').text(project.emoji);
-      $desc.find('.desc__body .desc__detail > span').text(project.title);
-      $desc.find('.desc__body .desc__detail > p').text(project.description);
+      $desc.find('.desc__body .desc__detail .desc__text > span').text(project.title);
+      $desc.find('.desc__body .desc__detail .desc__text > p').text(project.description);
+
+      var $author = $desc.find('.desc__author');
+      if (project.authorName) {
+        $author.find('.desc__author-avatar').attr('src', project.authorAvatar);
+        $author.find('.desc__author-name').text(project.authorName);
+        $author.show();
+      } else {
+        $author.hide();
+      }
+
       $descLink.attr('href', project.downloadUrl);
       $popupInn[0].scrollTop = 0;
       loadVideo(project, index);
@@ -1349,6 +1487,8 @@ $(function () {
       var $inn = $popup.find('.inner .box .inn');
       var dragging = false;
       var axis = null;
+      var swipeVideoWasPlaying = false;
+
       el.addEventListener('touchstart', function (e) {
         if (!isOpen) return;
         var t = e.touches[0];
@@ -1359,6 +1499,8 @@ $(function () {
         dragging = false;
         swipeHandled = false;
         axis = null;
+        swipeActive = true;
+        swipeVideoWasPlaying = popupVideoEl && !popupVideoEl.paused;
         $inn.css('transition', 'none');
       }, { passive: true });
 
@@ -1377,63 +1519,80 @@ $(function () {
           }
         }
 
-        var delta = axis === 'x' ? dx : dy;
-        var prop = axis === 'x'
-          ? 'translateX(' + delta + 'px)'
-          : 'translateY(' + delta + 'px)';
-        var opacity = Math.max(0.3, 1 - Math.abs(delta) / 400);
-        $inn.css({ transform: prop, opacity: opacity });
+        if (axis === 'y') {
+          var delta = dy;
+          var prop = 'translateY(' + delta + 'px)';
+          var opacity = Math.max(0.3, 1 - Math.abs(delta) / 400);
+          $inn.css({ transform: prop, opacity: opacity });
+        }
+
+        if (axis === 'x') {
+          var delta = dx;
+          var opacity = Math.max(0.3, 1 - Math.abs(delta) / 300);
+          $inn.css({ transform: 'translateX(' + delta + 'px)', opacity: opacity });
+        }
       }, { passive: true });
 
       el.addEventListener('touchend', function (e) {
         if (!isOpen || !swiping) return;
         swiping = false;
+        swipeActive = false;
         var t = e.changedTouches[0];
         var dx = t.clientX - startX;
         var dy = t.clientY - startY;
-        var delta = axis === 'x' ? dx : dy;
-        var absDelta = Math.abs(delta);
 
-        if (!dragging || absDelta < threshold) {
-          $inn.css({ transition: 'transform 0.25s ease, opacity 0.25s ease', transform: '', opacity: 1 });
+        if (axis === 'x' && Math.abs(dx) >= threshold) {
+          swipeDone = true;
+          var direction = dx > 0 ? 1 : -1;
+          $inn.css({
+            transition: 'transform 0.2s ease, opacity 0.2s ease',
+            transform: 'translateX(' + (direction * window.innerWidth) + 'px)',
+            opacity: 0
+          });
+          setTimeout(function () {
+            closePopup();
+            $inn.css({ transition: 'none', transform: '', opacity: 1 });
+          }, 200);
           axis = null;
           return;
         }
 
-        swipeDone = true;
-        isSwitching = true;
+        if (axis === 'y' && Math.abs(dy) >= threshold) {
+          swipeDone = true;
+          isSwitching = true;
 
-        var direction = delta < 0 ? 1 : -1;
-        var slideOut = axis === 'x'
-          ? 'translateX(' + (direction * -window.innerWidth) + 'px)'
-          : 'translateY(' + (direction * -window.innerHeight) + 'px)';
+          var direction = dy < 0 ? 1 : -1;
+          var slideOut = 'translateY(' + (direction * -window.innerHeight) + 'px)';
 
-        $inn.css({ transition: 'transform 0.2s ease, opacity 0.2s ease', transform: slideOut, opacity: 0 });
+          $inn.css({ transition: 'transform 0.2s ease, opacity 0.2s ease', transform: slideOut, opacity: 0 });
 
-        var nextIdx = direction > 0
-          ? (currentIndex + 1) % PROJECTS.length
-          : (currentIndex - 1 + PROJECTS.length) % PROJECTS.length;
+          var nextIdx = direction > 0
+            ? (currentIndex + 1) % PROJECTS.length
+            : (currentIndex - 1 + PROJECTS.length) % PROJECTS.length;
 
-        setTimeout(function () {
-          var slideIn = axis === 'x'
-            ? 'translateX(' + (direction * window.innerWidth) + 'px)'
-            : 'translateY(' + (direction * window.innerHeight) + 'px)';
+          setTimeout(function () {
+            var slideIn = 'translateY(' + (direction * window.innerHeight) + 'px)';
 
-          currentIndex = nextIdx;
-          $popup.find('.desc__body').slideUp(0);
-          updatePopupContent(nextIdx);
-          highlightFloatItem(nextIdx, true);
+            currentIndex = nextIdx;
+            $popup.find('.desc__body').slideUp(0);
+            updatePopupContent(nextIdx);
+            highlightFloatItem(nextIdx, true);
 
-          $inn.css({ transition: 'none', transform: slideIn, opacity: 0 });
+            $inn.css({ transition: 'none', transform: slideIn, opacity: 0 });
 
-          requestAnimationFrame(function () {
             requestAnimationFrame(function () {
-              $inn.css({ transition: 'transform 0.25s ease, opacity 0.25s ease', transform: '', opacity: 1 });
-              setTimeout(function () { isSwitching = false; }, 250);
+              requestAnimationFrame(function () {
+                $inn.css({ transition: 'transform 0.25s ease, opacity 0.25s ease', transform: '', opacity: 1 });
+                setTimeout(function () { isSwitching = false; }, 250);
+              });
             });
-          });
-          axis = null;
-        }, 200);
+            axis = null;
+          }, 200);
+          return;
+        }
+
+        $inn.css({ transition: 'transform 0.25s ease, opacity 0.25s ease', transform: '', opacity: 1 });
+        axis = null;
       }, { passive: true });
 
     })();
