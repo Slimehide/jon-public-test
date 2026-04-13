@@ -1253,6 +1253,7 @@ $(function () {
           setTimeout(function () { ensurePlaying(); }, 16);
           setTimeout(function () { ensurePlaying(); }, 80);
           setTimeout(function () { ensurePlaying(); }, 200);
+          setTimeout(function () { ensurePlaying(); }, 500);
         }
       });
 
@@ -1349,6 +1350,12 @@ $(function () {
       $popup.find('.inner').css({ padding: '' });
     }
 
+    function forcePlayVideo() {
+      if (!popupVideoEl || userPaused || !isOpen) return;
+      popupVideoEl.play().catch(function () {});
+      videoPlaying = true;
+    }
+
     var switchCooldown = 600;
     var lastSwitchTime = 0;
 
@@ -1379,7 +1386,10 @@ $(function () {
         requestAnimationFrame(function () {
           requestAnimationFrame(function () {
             $inn.css({ transition: 'transform 0.25s ease, opacity 0.25s ease', transform: '', opacity: 1 });
-            setTimeout(function () { isSwitching = false; }, 350);
+            setTimeout(function () {
+              isSwitching = false;
+              forcePlayVideo();
+            }, 350);
           });
         });
       }, 200);
@@ -1559,6 +1569,7 @@ $(function () {
         var dx = t.clientX - startX;
         var dy = t.clientY - startY;
 
+        // Horizontal swipe: close popup
         if (axis === 'x' && Math.abs(dx) >= threshold) {
           swipeDone = true;
           var direction = dx > 0 ? 1 : -1;
@@ -1575,9 +1586,22 @@ $(function () {
           return;
         }
 
+        // Vertical swipe: switch project (with cooldown)
         if (axis === 'y' && Math.abs(dy) >= threshold) {
+          // Enforce same cooldown as switchProject
+          var now = Date.now();
+          if (isSwitching || (now - lastSwitchTime < switchCooldown)) {
+            // Blocked — snap back
+            $inn.css({ transition: 'transform 0.25s ease, opacity 0.25s ease', transform: '', opacity: 1 });
+            axis = null;
+            return;
+          }
+
           swipeDone = true;
+          lastSwitchTime = now;
           isSwitching = true;
+          clearTimeout(switchSafetyTimer);
+          switchSafetyTimer = setTimeout(function () { isSwitching = false; }, 1200);
 
           var direction = dy < 0 ? 1 : -1;
           var slideOut = 'translateY(' + (direction * -window.innerHeight) + 'px)';
@@ -1601,7 +1625,11 @@ $(function () {
             requestAnimationFrame(function () {
               requestAnimationFrame(function () {
                 $inn.css({ transition: 'transform 0.25s ease, opacity 0.25s ease', transform: '', opacity: 1 });
-                setTimeout(function () { isSwitching = false; }, 250);
+                // After animation settles, force play and unlock
+                setTimeout(function () {
+                  isSwitching = false;
+                  forcePlayVideo();
+                }, 350);
               });
             });
             axis = null;
@@ -1609,6 +1637,7 @@ $(function () {
           return;
         }
 
+        // Not enough movement — snap back
         $inn.css({ transition: 'transform 0.25s ease, opacity 0.25s ease', transform: '', opacity: 1 });
         axis = null;
       }, { passive: true });
