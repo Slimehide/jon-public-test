@@ -1,6 +1,5 @@
 
 
-
 (function detectTouchDevice() {
   var ua = navigator.userAgent || '';
   var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
@@ -91,6 +90,10 @@ $(function () {
       }
 
       if (perfState.frameTimes.length < 18) return;
+
+      // Only recompute summary every 8 samples
+      perfState._sampleCounter = (perfState._sampleCounter || 0) + 1;
+      if (perfState.summary && perfState._sampleCounter % 8 !== 0) return;
 
       var sorted = perfState.frameTimes.slice().sort(function (a, b) { return a - b; });
       var median = sorted[Math.floor(sorted.length * 0.5)];
@@ -304,6 +307,24 @@ $(function () {
       return launch;
     }
 
+    // Pre-compute trail opacity values per node at creation time
+    var trailClassOrder = [
+      'rocket-launch__trail--wake',
+      'rocket-launch__trail--mist',
+      'rocket-launch__trail--smoke',
+      'rocket-launch__trail--core',
+      'rocket-launch__trail--sun'
+    ];
+
+    function getTrailOpacity(node) {
+      for (var i = 0; i < trailClassOrder.length; i++) {
+        if (node.classList.contains(trailClassOrder[i])) {
+          return trailOpacityByType[trailClassOrder[i]];
+        }
+      }
+      return 0;
+    }
+
     function setTrailFrame(launch, progress, now) {
       var trailFade = progress < 0.015 ? progress / 0.015 : progress > 0.76 ? 1 - ((progress - 0.76) / 0.18) : 1;
       var releaseFade = 1;
@@ -312,24 +333,25 @@ $(function () {
         releaseFade = clamp(1 - ((now - launch.releasedAt) / 700), 0, 1);
       }
 
-      launch.trailNodes.forEach(function (node, index) {
-        var pathLength = launch.trailLengths[index];
+      var fadeMultiplier = launch.opacityScale * clamp(trailFade, 0, 1) * releaseFade;
+
+      // Use cached opacity values to avoid classList lookups every frame
+      var trailOpacities = launch._trailOpacities;
+      if (!trailOpacities) {
+        trailOpacities = launch._trailOpacities = launch.trailNodes.map(getTrailOpacity);
+      }
+
+      for (var i = 0, len = launch.trailNodes.length; i < len; i++) {
+        var node = launch.trailNodes[i];
+        if (node.style.display === 'none') continue;
+
+        var pathLength = launch.trailLengths[i];
         var visibleLength = clamp(progress, 0, 1) * pathLength;
-        var opacity = 0;
+        var opacity = trailOpacities[i];
 
-        Object.keys(trailOpacityByType).some(function (className) {
-          if (node.classList.contains(className)) {
-            opacity = trailOpacityByType[className];
-            return true;
-          }
-          return false;
-        });
-
-        if (node.style.display === 'none') return;
-
-        node.style.strokeDasharray = visibleLength.toFixed(3) + ' ' + pathLength.toFixed(3);
-        node.style.opacity = (opacity * launch.opacityScale * clamp(trailFade, 0, 1) * releaseFade).toFixed(3);
-      });
+        node.style.strokeDasharray = visibleLength.toFixed(1) + ' ' + pathLength.toFixed(1);
+        node.style.opacity = (opacity * fadeMultiplier).toFixed(3);
+      }
     }
 
     function setRocketFrame(launch, progress) {
@@ -349,6 +371,9 @@ $(function () {
     }
 
     function animatePadEffects(launch, rawProgress) {
+      // Skip all pad effects when clearly past their animation window
+      if (rawProgress > 0.36) return;
+
       function padHazeFrame(phase) {
         if (phase <= 0.01 || phase >= 0.32) return { opacity: 0, scale: 2.4 };
         if (phase < 0.06) return { opacity: lerp(0, 0.18, (phase - 0.01) / 0.05), scale: lerp(0.72, 1, (phase - 0.01) / 0.05) };
@@ -978,7 +1003,6 @@ $(function () {
       if (played) return;
       var rect = $middle[0].getBoundingClientRect();
       var vpH = window.innerHeight;
-      console.log();
       if (($(".page-scroll").scrollTop() + $(window).height()) > ($('.bottom__controls').offset().top + $('.page-scroll').scrollTop()) + 50) {
         $pageScroll.off('scroll.addItemAnim');
         $(window).off('resize.addItemAnim');
@@ -1181,74 +1205,118 @@ $(function () {
     var popupVideoEl = null;
     var blobCache = {};
 
-    // Pre-fetch video files into blob cache. Each load creates a fresh
-    // blob URL to avoid browser decoder issues with reused blob URLs.
-    PROJECTS.forEach(function (p) {
-      if (blobCache[p.videoSrc]) return;
-      blobCache[p.videoSrc] = 'loading';
-      fetch(p.videoSrc)
+    // ── Video Pool: pre-create and pre-load all video elements ──
+    // This avoids expensive DOM creation / decoder init on every switch.
+    var videoPool = [];
+    var poolReady = false;
+
+    // Pre-fetch video blobs and build pool entries
+    var uniqueSrcs = {};
+    PROJECTS.forEach(function (p) { uniqueSrcs[p.videoSrc] = true; });
+
+    var blobPromises = {};
+    Object.keys(uniqueSrcs).forEach(function (src) {
+      blobCache[src] = 'loading';
+      blobPromises[src] = fetch(src)
         .then(function (r) { return r.blob(); })
         .then(function (blob) {
-          blobCache[p.videoSrc] = blob;
+          blobCache[src] = blob;
+          return blob;
         })
         .catch(function () {
-          blobCache[p.videoSrc] = null;
+          blobCache[src] = null;
+          return null;
         });
     });
 
-    function getVideoSrc(project) {
-      var blob = blobCache[project.videoSrc];
-      if (blob && blob !== 'loading') {
-        // Fresh blob URL every time — avoids decoder reuse bugs
-        return URL.createObjectURL(blob);
-      }
-      return project.videoSrc;
+    // Build the shared UI chrome once (overlay, play button, progress bar)
+    var $sharedOverlay = $('<div class="video__overlay"></div>');
+    var $sharedPlayBtn = $('<button class="popup-play-btn" style="display:none;">' +
+      '<svg width="84" height="84" viewBox="0 0 84 84" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+      '<circle cx="42" cy="42" r="41.5" fill="#232323" fill-opacity="0.7"/>' +
+      '<circle cx="42" cy="42" r="41.5" stroke="#6D6D6D" stroke-opacity="0.25" stroke-width="0.6"/>' +
+      '<path d="M36.9104 31.8995C36.9104 30.2225 38.8503 29.2902 40.1598 30.3378L52.3449 40.0867C53.3457 40.8874 53.3457 42.4095 52.3449 43.2101L40.1598 52.959C38.8503 54.0067 36.9104 53.0744 36.9104 51.3973L36.9104 31.8995Z" fill="#D97657"/>' +
+      '</svg></button>');
+    var $sharedProgress = $('<div class="video__progress"><div class="video__progress-bar"></div></div>');
+    var $sharedBar = $sharedProgress.find('.video__progress-bar');
+
+    // Create one <video> element per project and pre-load with blob URLs.
+    // Each gets a stable blob URL that persists for the session.
+    function initVideoPool() {
+      PROJECTS.forEach(function (project, idx) {
+        var vid = document.createElement('video');
+        vid.autoplay = false;
+        vid.playsInline = true;
+        vid.preload = 'auto';
+        vid.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:12px;transform:translateZ(0)';
+
+        var entry = {
+          index: idx,
+          videoEl: vid,
+          blobUrl: null,
+          loaded: false
+        };
+
+        // Assign blob URL as soon as the fetch completes
+        var src = project.videoSrc;
+        var blobP = blobPromises[src];
+        if (blobP) {
+          blobP.then(function (blob) {
+            if (!blob) {
+              vid.src = src;
+              entry.loaded = true;
+              return;
+            }
+            var url = URL.createObjectURL(blob);
+            entry.blobUrl = url;
+            vid.src = url;
+            entry.loaded = true;
+            // Trigger decode so the first frame is ready in GPU memory
+            if (vid.decode) {
+              vid.decode().catch(function () {});
+            }
+          });
+        } else {
+          vid.src = src;
+          entry.loaded = true;
+        }
+
+        videoPool.push(entry);
+      });
+      poolReady = true;
     }
 
+    initVideoPool();
+
     var progressRAF = 0;
-
     var userPaused = false;
-
     var swipeActive = false;
     var playPollTimer = 0;
-    var currentBlobUrl = null;
 
     function loadVideo(project, index) {
       clearInterval(playPollTimer);
-      popupVideoEl = null;
-      $videoContainer.empty();
       cancelAnimationFrame(progressRAF);
       userPaused = false;
 
-      // Revoke previous blob URL to prevent memory leak
-      if (currentBlobUrl) {
-        URL.revokeObjectURL(currentBlobUrl);
-        currentBlobUrl = null;
-      }
+      // Detach all pool videos from container (don't destroy them)
+      $videoContainer.children('video').detach();
+      // Remove old chrome but keep it for reuse
+      $sharedOverlay.detach();
+      $sharedPlayBtn.detach().hide();
+      $sharedProgress.detach();
+      $sharedBar.css('width', '0%');
 
-      var src = getVideoSrc(project);
-      // Track if this is a blob URL so we can revoke it later
-      if (src.indexOf('blob:') === 0) {
-        currentBlobUrl = src;
-      }
-
-      var $video = $('<video autoplay playsinline></video>');
-      $video.attr('src', src);
-      var $overlay = $('<div class="video__overlay"></div>');
-      var $playBtn = $('<button class="popup-play-btn" style="display:none;">' +
-        '<svg width="84" height="84" viewBox="0 0 84 84" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-        '<circle cx="42" cy="42" r="41.5" fill="#232323" fill-opacity="0.7"/>' +
-        '<circle cx="42" cy="42" r="41.5" stroke="#6D6D6D" stroke-opacity="0.25" stroke-width="0.6"/>' +
-        '<path d="M36.9104 31.8995C36.9104 30.2225 38.8503 29.2902 40.1598 30.3378L52.3449 40.0867C53.3457 40.8874 53.3457 42.4095 52.3449 43.2101L40.1598 52.959C38.8503 54.0067 36.9104 53.0744 36.9104 51.3973L36.9104 31.8995Z" fill="#D97657"/>' +
-        '</svg></button>');
-      var $progress = $('<div class="video__progress"><div class="video__progress-bar"></div></div>');
-      $videoContainer.append($video).append($overlay).append($playBtn).append($progress);
-
-      var $bar = $progress.find('.video__progress-bar');
-      var vid = $video[0];
+      // Grab the pre-loaded video element from the pool
+      var entry = videoPool[index];
+      var vid = entry.videoEl;
       popupVideoEl = vid;
       videoPlaying = true;
 
+      // Append pooled video + shared chrome (no DOM creation)
+      $videoContainer.append(vid).append($sharedOverlay).append($sharedPlayBtn).append($sharedProgress);
+
+      // Seek to start and play
+      vid.currentTime = 0;
       vid.play().catch(function () {});
 
       var pollCount = 0;
@@ -1263,17 +1331,18 @@ $(function () {
         if (vid.paused) {
           vid.play().catch(function () {});
           videoPlaying = true;
-          // After ~2s of failed attempts, show the play button as fallback
           if (pollCount >= 7) {
-            $playBtn.fadeIn(200);
+            $sharedPlayBtn.fadeIn(200);
           }
         } else {
-          // Video is playing — hide button if it was shown
-          $playBtn.hide();
+          $sharedPlayBtn.hide();
         }
       }, 300);
 
-      $video.on('canplay', function () {
+      // Event handlers — use .off().on() to avoid stacking
+      $(vid).off('canplay.pool playing.pool pause.pool ended.pool');
+
+      $(vid).on('canplay.pool', function () {
         if (vid !== popupVideoEl || userPaused || vid.ended) return;
         if (vid.paused) {
           vid.play().catch(function () {});
@@ -1281,13 +1350,13 @@ $(function () {
         }
       });
 
-      $video.on('playing', function () {
+      $(vid).on('playing.pool', function () {
         if (vid !== popupVideoEl) return;
-        $playBtn.hide();
+        $sharedPlayBtn.hide();
         videoPlaying = true;
       });
 
-      $video.on('pause', function () {
+      $(vid).on('pause.pool', function () {
         if (vid !== popupVideoEl || userPaused || !isOpen) return;
         if (vid.ended) return;
         vid.play().catch(function () {});
@@ -1297,15 +1366,15 @@ $(function () {
       function updateProgress() {
         if (vid !== popupVideoEl) return;
         var pct = vid.duration ? (vid.currentTime / vid.duration) * 100 : 0;
-        $bar.css('width', pct + '%');
+        $sharedBar.css('width', pct + '%');
         progressRAF = requestAnimationFrame(updateProgress);
       }
       progressRAF = requestAnimationFrame(updateProgress);
 
-      $video.on('ended', function () {
+      $(vid).on('ended.pool', function () {
         if (vid !== popupVideoEl) return;
         cancelAnimationFrame(progressRAF);
-        $bar.css('width', '100%');
+        $sharedBar.css('width', '100%');
         if (!isOpen) return;
         var nextIdx = (currentIndex + 1) % PROJECTS.length;
         switchProject(nextIdx, 1);
@@ -1315,7 +1384,7 @@ $(function () {
     function toggleVideo() {
       if (!popupVideoEl) return;
       if (!userPaused && !popupVideoEl.paused) {
-        userPaused = true;   // Set flag BEFORE pausing so handler doesn't resume
+        userPaused = true;
         videoPlaying = false;
         popupVideoEl.pause();
       } else {
@@ -1328,12 +1397,15 @@ $(function () {
     function destroyVideo() {
       clearInterval(playPollTimer);
       cancelAnimationFrame(progressRAF);
-      popupVideoEl = null;
-      $videoContainer.empty();
-      if (currentBlobUrl) {
-        URL.revokeObjectURL(currentBlobUrl);
-        currentBlobUrl = null;
+      // Pause and detach (don't destroy) pooled videos
+      if (popupVideoEl) {
+        popupVideoEl.pause();
       }
+      popupVideoEl = null;
+      $videoContainer.children('video').detach();
+      $sharedOverlay.detach();
+      $sharedPlayBtn.detach();
+      $sharedProgress.detach();
     }
 
 

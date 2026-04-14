@@ -8,8 +8,14 @@
 	<link rel="stylesheet" href="css/style.css">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="preconnect" href="https://player.vimeo.com">
+	<link rel="preconnect" href="https://i.vimeocdn.com">
+	<link rel="dns-prefetch" href="https://f.vimeocdn.com">
+	<link rel="dns-prefetch" href="https://fresnel.vimeocdn.com">
 	<link rel="preload" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=block" as="style">
 	<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=block" rel="stylesheet">
+	<link rel="preload" href="videos/img_6197.mov" as="video" type="video/quicktime">
+	<link rel="preload" href="videos/img_6198.mov" as="video" type="video/quicktime">
 </head>
 <body>
 	<div class="aurora-backdrop" aria-hidden="true">
@@ -67,7 +73,7 @@
 	<div class="page-scroll">
 	<div class="main__flow">
 		<div class="small-title">
-			<span>GalaxyBrain</span>
+			<span>GalaxyBrain <span>v 0.8.3 beta</span></span>
 			<a href="#">🗂️ Documentation</a>
 		</div>
 		<div class="top__info">
@@ -192,13 +198,13 @@
 					<div class="author">
 						<p>Jon-Paul Wheatley</p>
 						<div class="media--box">
-							<img src="img/image1.webp" alt="image">
+							<img src="img/image1.webp" alt="image" loading="lazy" decoding="async">
 						</div>
 					</div>
 					<div class="screen">
-						
+
 						<span><img src="img/play-btn.svg" alt="play-btn"></span>
-						<img src="img/screen-1.png" alt="screen-1">
+						<img src="img/screen-1.png" alt="screen-1" loading="lazy" decoding="async">
 					</div>
 				</div>
 
@@ -207,13 +213,13 @@
 					<div class="author">
 						<p>Nikola Uzunov</p>
 						<div class="media--box">
-							<img src="img/image2.webp" alt="image">
+							<img src="img/image2.webp" alt="image" loading="lazy" decoding="async">
 						</div>
 					</div>
 					<div class="screen">
-						
+
 						<span><img src="img/play-btn.svg" alt="play-btn"></span>
-						<img src="img/screen-2.png" alt="screen-1">
+						<img src="img/screen-2.png" alt="screen-1" loading="lazy" decoding="async">
 					</div>
 				</div>
 
@@ -221,13 +227,13 @@
 					<div class="author">
 						<p>Jon-Paul Wheatley</p>
 						<div class="media--box">
-							<img src="img/image1.webp" alt="image">
+							<img src="img/image1.webp" alt="image" loading="lazy" decoding="async">
 						</div>
 					</div>
 					<div class="screen">
-						
+
 						<span><img src="img/play-btn.svg" alt="play-btn"></span>
-						<img src="img/screen-1.png" alt="screen-1">
+						<img src="img/screen-1.png" alt="screen-1" loading="lazy" decoding="async">
 					</div>
 				</div>
 
@@ -236,13 +242,13 @@
 					<div class="author">
 						<p>Nikola Uzunov</p>
 						<div class="media--box">
-							<img src="img/image2.webp" alt="image">
+							<img src="img/image2.webp" alt="image" loading="lazy" decoding="async">
 						</div>
 					</div>
 					<div class="screen">
-						
+
 						<span><img src="img/play-btn.svg" alt="play-btn"></span>
-						<img src="img/screen-2.png" alt="screen-1">
+						<img src="img/screen-2.png" alt="screen-1" loading="lazy" decoding="async">
 					</div>
 				</div>
 				
@@ -339,7 +345,7 @@
   src="https://code.jquery.com/jquery-4.0.0.min.js"
   integrity="sha256-OaVG6prZf4v69dPg6PhVattBXkcOWQB62pdZ3ORyrao="
   crossorigin="anonymous"></script>
-	<script src="https://player.vimeo.com/api/player.js"></script>
+	<script src="https://player.vimeo.com/api/player.js" defer></script>
 	<script src="js/aurora.js"></script>
 	<script src="js/script.js"></script>
 </body>

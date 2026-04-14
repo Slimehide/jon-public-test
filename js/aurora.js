@@ -106,6 +106,10 @@
       return;
     }
 
+    // Only recompute summary every 8 samples to reduce sort cost
+    perfState._sampleCounter = (perfState._sampleCounter || 0) + 1;
+    if (perfState.summary && perfState._sampleCounter % 8 !== 0) return;
+
     var sorted = perfState.frameTimes.slice().sort(function (a, b) {
       return a - b;
     });
@@ -725,17 +729,24 @@
       performance.mark("aurora-gl-ready");
     }
 
+    // Pre-allocate typed arrays outside render loop to avoid per-frame GC pressure
+    var _rocketDataA = new Float32Array(12);
+    var _rocketDataB = new Float32Array(12);
+
     function render(now) {
       if (!state || state.stopped) return;
 
       var rocketLaunchState = window.__rocketLaunchState || { active: 0, progress: 0, activeCount: 0, arcRotationDeg: 0, shaderLaunches: [] };
       var idle = clamp(1 - (now - pointer.lastMove) / 1600, 0, 1);
-      var targetInterval = 1000 / 30;
+      var targetInterval;
 
       if (rocketLaunchState.activeCount > 0) {
         targetInterval = runtime.qualityState.tier === "full" ? 1000 / 42 : 1000 / 34;
       } else if (idle > 0.12) {
         targetInterval = runtime.qualityState.tier === "full" ? 1000 / 50 : 1000 / 40;
+      } else {
+        // Deep idle: no pointer activity, no rockets — drop to low FPS
+        targetInterval = 1000 / 20;
       }
 
       if (state.lastDrawTime && now - state.lastDrawTime < targetInterval) {
@@ -753,8 +764,11 @@
       var smoothing = window.innerWidth <= 768 ? 0.05 : 0.07;
       var shaderLaunches = rocketLaunchState.shaderLaunches || [];
       var qualityLevel = (runtime.qualityState && runtime.qualityState.qualityLevel) || 1;
-      var rocketDataA = new Float32Array(12);
-      var rocketDataB = new Float32Array(12);
+      // Reuse pre-allocated arrays — zero them out
+      _rocketDataA.fill(0);
+      _rocketDataB.fill(0);
+      var rocketDataA = _rocketDataA;
+      var rocketDataB = _rocketDataB;
       var loadSignature = (runtime.qualityState.tier || "full") + ":" + (rocketLaunchState.activeCount || 0) + ":" + (runtime.rocketLoad || 1).toFixed(2);
       var index;
 
@@ -763,12 +777,15 @@
         handleResize();
       }
 
-      pointer.currentX = lerp(pointer.currentX, pointer.targetX, smoothing);
-      pointer.currentY = lerp(pointer.currentY, pointer.targetY, smoothing);
-      pointer.vx = lerp(pointer.vx, pointer.targetVX, 0.12);
-      pointer.vy = lerp(pointer.vy, pointer.targetVY, 0.12);
-      pointer.targetVX *= 0.9;
-      pointer.targetVY *= 0.9;
+      // Skip pointer lerp when deeply idle and already converged
+      if (idle > 0.01 || Math.abs(pointer.currentX - pointer.targetX) > 0.0005 || Math.abs(pointer.currentY - pointer.targetY) > 0.0005) {
+        pointer.currentX = lerp(pointer.currentX, pointer.targetX, smoothing);
+        pointer.currentY = lerp(pointer.currentY, pointer.targetY, smoothing);
+        pointer.vx = lerp(pointer.vx, pointer.targetVX, 0.12);
+        pointer.vy = lerp(pointer.vy, pointer.targetVY, 0.12);
+        pointer.targetVX *= 0.9;
+        pointer.targetVY *= 0.9;
+      }
 
       var influence = idle * clamp(0.04 + Math.hypot(pointer.vx, pointer.vy) * 0.2, 0, 0.18) * settings.pointer;
 

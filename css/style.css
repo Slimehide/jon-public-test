@@ -66,6 +66,7 @@ body,html{
 	overflow: hidden;
 	pointer-events: none;
 	z-index: 0;
+	contain: strict;
 }
 .aurora-canvas,
 .aurora-fallback-glow,
@@ -79,6 +80,7 @@ body,html{
 	display: block;
 	opacity: 0;
 	transition: opacity .7s ease;
+	will-change: opacity;
 }
 .aurora-fallback-glow{
 	opacity: .75;
@@ -89,9 +91,10 @@ body,html{
 		radial-gradient(26% 18% at 28% 18%, rgba(133, 84, 150, .08) 0%, rgba(133, 84, 150, 0) 76%),
 		radial-gradient(26% 18% at 74% 24%, rgba(100, 134, 90, .06) 0%, rgba(100, 134, 90, 0) 80%),
 		linear-gradient(180deg, rgba(39, 39, 39, 0) 0%, rgba(39, 39, 39, .08) 60%, rgba(39, 39, 39, var(--aurora-bottom-darkness)) 100%);
-	transform: scale(1.03);
+	transform: scale(1.03) translateZ(0);
 	filter: blur(8px);
 	transition: opacity .7s ease;
+	will-change: opacity;
 }
 body.aurora-active .aurora-canvas{
 	opacity: .76;
@@ -107,6 +110,8 @@ body.aurora-reduced-motion .aurora-fallback-glow{
 	z-index: 2;
 	opacity: .46;
 	overflow: hidden;
+	contain: layout style;
+	transform: translateZ(0);
 }
 .rocket-launch__svg{
 	display: block;
@@ -410,6 +415,8 @@ body *{
 	position: relative;
 	box-shadow:10px 10px 30px rgba(0,0,0,.25);
 	margin-bottom: 110px;
+	contain: layout style;
+	transform: translateZ(0);
 }
 .video__box>iframe{
 	pointer-events: none;
@@ -418,6 +425,7 @@ body *{
 	top:0px;
 	width: 100%;
 	height: 100%;
+	transform: translateZ(0);
 }
 .video__box>a svg *{
 	transition:.2s ease all;
@@ -445,6 +453,7 @@ body *{
 	width: 100%;
 	height:100%;
 	object-fit: cover;
+	transform: translateZ(0);
 }
 .bottom__info>.left{
 	max-width: 440px;
@@ -563,6 +572,7 @@ body *{
 	opacity: 0;
 	filter: drop-shadow(0 1px 2px rgba(0,0,0,.4));
 	will-change: transform, opacity;
+	transform: translateZ(0);
 }
 .fake-cursor .cursor-drag{
 	position: relative;
@@ -576,6 +586,7 @@ body *{
 	z-index: 99;
 	opacity: 0;
 	will-change: transform, opacity;
+	transform: translateZ(0);
 	cursor: pointer;
 	display: flex;
 	padding: 1px 2px 1px 4px;
@@ -705,6 +716,8 @@ footer{
 	align-items: flex-start;
 	justify-content: space-between;
 	padding-bottom:40px;
+	content-visibility: auto;
+	contain-intrinsic-size: auto 120px;
 }
 footer>ul{
 	padding:0px;
@@ -906,6 +919,8 @@ footer>ul:nth-child(2){
 	margin-top: 120px;
 	padding-top: 50px;
 	border-top:1px solid rgba(217, 217, 217, .1);
+	content-visibility: auto;
+	contain-intrinsic-size: auto 600px;
 }
 .templates__grid>.elem .media{
 	display: flex;
@@ -1008,17 +1023,18 @@ footer>ul:nth-child(2){
 	width: 100%;
 	height: 100%;
 	z-index: 150;
-	backdrop-filter:blur(5px);
 	background-color: rgba(35, 35, 35, .4);
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
 	transition: opacity 0.3s ease, visibility 0.3s ease;
+	will-change: opacity, visibility;
 }
 .project__popup.active{
 	opacity: 1;
 	visibility: visible;
 	pointer-events: auto;
+	backdrop-filter:blur(5px);
 }
 .project__popup>.inner .box{
 	width: 100%;
@@ -1032,6 +1048,7 @@ footer>ul:nth-child(2){
 	height: 100%;
 	object-fit: cover;
 	border-radius: 12px;
+	transform: translateZ(0);
 }
 .project__popup>.inner .box .inn .video .video__overlay{
 	position: absolute;
@@ -1205,10 +1222,9 @@ footer>ul:nth-child(2){
 	margin-left: auto;
 	margin-right: auto;
 	border-radius: 12px;
-	backdrop-filter:blur(500px);
 	border:1px solid rgba(109,109,109,.25);
 	box-shadow:40px 30px 60px 0px rgba(0,0,0,.15);
-	background-color:rgba(35,35,35,.7);
+	background-color:rgba(35,35,35,.95);
 }
 .subscribe__popup .inner .box form{
 	display: flex;
@@ -1281,6 +1297,7 @@ footer>ul:nth-child(2){
 	height: 100%;
 	z-index: 200;
 	backdrop-filter:blur(5px);
+	-webkit-backdrop-filter:blur(5px);
 	background-color: rgba(35, 35, 35, .4);
 	/*opacity: 0;*/
 	/*visibility: hidden;*/
@@ -1315,7 +1332,6 @@ body.is-touch-device .project__popup .inn>.btn-popup .btn-popup__email{
 	letter-spacing: -0.01em;
 	text-decoration: none;
 	transition: background-color .2s ease, border-color .2s ease;
-	backdrop-filter: blur(10px);
 	overflow: hidden;
 }
 .project__popup .inn>.btn-popup>a:hover{
@@ -1372,12 +1388,11 @@ body.is-touch-device .project__popup .inn>.btn-popup .btn-popup__email{
 	align-items: center;
 	justify-content: center;
 	border:1px solid rgba(109, 109, 109, 0.25);
-	background-color:rgba(28,28,28,1);
+	background-color:rgba(28,28,28,.97);
 	border-radius: 12px;
 	min-width: 67px;
 	max-width: 67px;
 	min-height: 67px;
-	backdrop-filter:blur(10px);
 	box-shadow:0px 12px 24px 0px rgba(0,0,0,.15);
 	max-height: 67px;
 	text-decoration: none;
@@ -1430,6 +1445,7 @@ body.popup-open .custom-scrollbar{
 .project__popup .inner .box .inn{
 	transition: opacity 0.15s ease;
 	position: relative;
+	will-change: transform, opacity;
 }
 .project__popup>.inner .box .inn .desc{
 	position: absolute;
@@ -1701,7 +1717,20 @@ body.is-touch-device .top__info .right>p  , body.is-touch-device .top__info .rig
 .bottom__info .middle ul>li{
 	border-radius:3px!important;	
 }
-@media (max-width: 1921px){
+.small-title>span {
+	position: relative;
+}
+.small-title>span span{
+	position: absolute;
+	left:0px;
+	bottom:-12px;
+	font-size: 10px;
+	line-height: 13px;
+}
+.project__popup .inn>.btn-popup>a{
+	z-index: 3;
+}
+@media (max-width: 1921px) and (max-height: 740px){
 
 	.main__flow{
 		padding-top: 15px;
