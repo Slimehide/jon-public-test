@@ -1722,8 +1722,8 @@ body.is-touch-device .top__info .right>p  , body.is-touch-device .top__info .rig
 .small-title>span span{
 	position: absolute;
 	left:0px;
-	bottom:-8px;
-	font-size: 8px;
+	bottom:-11px;
+	font-size: 9px;
 	color:rgb(130,130,130);
 	line-height: 12px;
 }
