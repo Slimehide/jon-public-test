@@ -16,7 +16,6 @@ $(document).ready(function(){
       errors++;
     }
     if (errors == 0) {
-      $(this).off("submit").submit();
       $(this).removeClass('error');
       $(this).closest('.mobile-info').addClass("submitted");
       $(this).closest('.mobile-info').find(">span").addClass('visible');
