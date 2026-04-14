@@ -1723,12 +1723,56 @@ body.is-touch-device .top__info .right>p  , body.is-touch-device .top__info .rig
 .small-title>span span{
 	position: absolute;
 	left:0px;
-	bottom:-12px;
-	font-size: 10px;
-	line-height: 13px;
+	bottom:-8px;
+	font-size: 8px;
+	color:rgb(130,130,130);
+	line-height: 12px;
 }
 .project__popup .inn>.btn-popup>a{
 	z-index: 3;
+}
+.mobile-info form.error input{
+	border-color:red;
+}
+.mobile-info form>input{
+	transition:.2s ease all;
+}
+.mobile-info>span{
+	opacity:0;
+	pointer-events: none;
+	transition:.2s ease all;
+}
+.mobile-info>span.visible{
+	opacity:1;
+	pointer-events: initial;
+}
+.mobile-info form button{
+	z-index: 3;
+	pointer-events: initial;
+}
+.mobile-info>p , .mobile-info>form{
+	transition:.2s ease all;
+}
+.mobile-info.submitted>p , .mobile-info.submitted>form{
+	opacity:0!important;
+	pointer-events: none!important;
+}
+.mobile-info{
+	position: relative;
+	font-size: 14px;
+	line-height: 17px;
+	color:rgba(185, 185, 185, 1);
+	font-weight: 500;
+	opacity:.5;
+}
+.mobile-info>span{
+
+}
+.mobile-info>span{
+	position: absolute;
+	left:50%;
+	top:50%;
+	transform:translate(-50% ,-50%);
 }
 @media (max-width: 1921px) and (max-height: 740px){
 

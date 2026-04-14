@@ -1,5 +1,29 @@
 
 
+$(document).ready(function(){
+   function validateEmail($email) {
+    var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+    return emailReg.test( $email );
+  }
+  $("body").on("input" ,".mobile-info input" , function(){
+    $(this).closest('form').removeClass('error');
+  });
+  $('.mobile-info form').on("submit" ,function(e){
+    e.preventDefault();
+    let errors = 0;
+    if (!validateEmail($(this).find("input").val()) || $(this).find("input").val().length == 0) {
+      $(this).addClass('error');
+      errors++;
+    }
+    if (errors == 0) {
+      $form.off("submit").submit();
+      $(this).removeClass('error');
+      $(this).closest('.mobile-info').addClass("submitted");
+      $(this).closest('.mobile-info').find(">span").addClass('visible');
+    }
+  });
+});
+
 (function detectTouchDevice() {
   var ua = navigator.userAgent || '';
   var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
