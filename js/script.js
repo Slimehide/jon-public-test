@@ -1128,10 +1128,8 @@ $(function () {
   (function initProjectPopup() {
 
     var PROJECTS = [
-      { emoji: '⚽', title: 'The Premier League', description: 'Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.', videoSrc: 'videos/img_6197.mov', downloadUrl: '#' },
-      { emoji: '🔴', title: 'The Pokedex', description: 'A living encyclopedia of every known Pokémon. Browse stats, evolutions, and types across all generations.', videoSrc: 'videos/img_6198.mov', downloadUrl: '#' },
-      { emoji: '💸', title: 'S&P 500 Tracker', description: 'Real-time market overview of all S&P 500 companies. Track prices, sectors, and historical performance.', videoSrc: 'videos/img_6197.mov', downloadUrl: '#' },
-      { emoji: '⛏️', title: 'Minecraft Database', description: 'Complete reference for blocks, items, mobs, and crafting recipes. Everything you need for your next build.', videoSrc: 'videos/img_6198.mov', downloadUrl: '#' }
+      { emoji: '⚽', title: 'The Premier League', description: 'Write like a document, calculate like a spreadsheet. Turn messy information into structured pages.', videoSrc: 'videos/building_blocks.mp4', downloadUrl: '#' },
+      { emoji: '🔴', title: 'The Pokedex', description: 'A living encyclopedia of every known Pokémon. Browse stats, evolutions, and types across all generations.', videoSrc: 'videos/10_things_that_are_kinda_nice.mp4', downloadUrl: '#' }
     ];
 
     var $grid = $('.templates__grid');
