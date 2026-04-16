@@ -2214,6 +2214,14 @@ footer form{
 	opacity:.5;
 }
 @media (max-width: 767px){
+	footer .double{
+		align-items: flex-start;
+		width: 100%;
+		text-align: left;
+	}
+	footer ul>li{
+		text-align: left;
+	}
 	footer{
 		flex-direction: column!important;
 	}
