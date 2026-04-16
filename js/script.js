@@ -22,19 +22,20 @@ $(document).ready(function(){
       $input[0] && $input[0].offsetWidth;
       $input.removeClass('placeholder-hidden');
       $form.data('thanks-active', false);
-    }, 2000);
+    }, 1000);
   }
 
   $('.mobile-info form, footer form').on("submit" ,function(e){
-    e.preventDefault();
     var $form = $(this);
     var val = $form.find("input").first().val();
     if (!validateEmail(val) || val.length == 0) {
+      e.preventDefault();
       $form.addClass('error');
       return;
     }
     $form.removeClass('error');
-    flashThanks($form);
+    setTimeout(function(){ flashThanks($form); }, 0);
+    if (typeof window.__triggerRocketLaunch === 'function') window.__triggerRocketLaunch();
   });
 
   if (typeof AOS !== 'undefined') {
@@ -662,6 +663,7 @@ $(function () {
     applyArcRotation(window.__rocketLaunchState.arcRotationDeg);
     syncRocketState();
     $launchButtons.on('pointerenter', triggerLaunch);
+    window.__triggerRocketLaunch = triggerLaunch;
   })();
 
   (function initFooterEmailCopy() {

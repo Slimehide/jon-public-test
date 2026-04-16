@@ -2541,7 +2541,7 @@ body.privacy-page>.page-scroll>footer{
 }
 
 input.show-thanks{
-	animation: thanksShow 2000ms cubic-bezier(.4,.1,.25,1);
+	animation: thanksShow 1000ms cubic-bezier(.4,.1,.25,1);
 }
 @keyframes thanksShow{
 	0%   { background-color: rgba(217, 118, 87, 0.05); box-shadow: 0 0 0 rgba(217, 118, 87, 0); color: rgba(255,255,255,0); }
@@ -2551,11 +2551,11 @@ input.show-thanks{
 	100% { background-color: rgba(217, 118, 87, 0.05); box-shadow: 0 0 0 rgba(217, 118, 87, 0); color: rgba(255,255,255,0); }
 }
 
-input::placeholder{ transition: color 900ms cubic-bezier(.4,.1,.25,1); }
-input::-webkit-input-placeholder{ transition: color 900ms cubic-bezier(.4,.1,.25,1); }
-input::-moz-placeholder{ transition: color 900ms cubic-bezier(.4,.1,.25,1); opacity: 1; }
-input:-ms-input-placeholder{ transition: color 900ms cubic-bezier(.4,.1,.25,1); }
-input::-ms-input-placeholder{ transition: color 900ms cubic-bezier(.4,.1,.25,1); }
+input::placeholder{ transition: color 450ms cubic-bezier(.4,.1,.25,1); }
+input::-webkit-input-placeholder{ transition: color 450ms cubic-bezier(.4,.1,.25,1); }
+input::-moz-placeholder{ transition: color 450ms cubic-bezier(.4,.1,.25,1); opacity: 1; }
+input:-ms-input-placeholder{ transition: color 450ms cubic-bezier(.4,.1,.25,1); }
+input::-ms-input-placeholder{ transition: color 450ms cubic-bezier(.4,.1,.25,1); }
 
 input.placeholder-hidden::placeholder{ color: rgba(185, 185, 185, 0) !important; }
 input.placeholder-hidden::-webkit-input-placeholder{ color: rgba(185, 185, 185, 0) !important; }
