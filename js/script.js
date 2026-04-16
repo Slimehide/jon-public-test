@@ -7,48 +7,62 @@ $(document).ready(function(){
     var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
     return emailReg.test( $email );
   }
-  $("body").on("input" ,".mobile-info input" , function(){
+  $("body").on("input" ,".mobile-info input, footer input" , function(){
     $(this).closest('form').removeClass('error');
   });
-  $('.mobile-info form').on("submit" ,function(e){
+
+  function flashThanks($form){
+    if ($form.data('thanks-active')) return;
+    $form.data('thanks-active', true);
+    var $input = $form.find('input').first();
+    $input.addClass('placeholder-hidden');
+    $input.val('Thanks!').prop('readonly', true).addClass('show-thanks');
+    setTimeout(function(){
+      $input.val('').prop('readonly', false).removeClass('show-thanks');
+      $input[0] && $input[0].offsetWidth;
+      $input.removeClass('placeholder-hidden');
+      $form.data('thanks-active', false);
+    }, 2000);
+  }
+
+  $('.mobile-info form, footer form').on("submit" ,function(e){
     e.preventDefault();
-    let errors = 0;
-    if (!validateEmail($(this).find("input").val()) || $(this).find("input").val().length == 0) {
-      $(this).addClass('error');
-      errors++;
-    }
-    if (errors == 0) {
-      $(this).removeClass('error');
-      $(this).closest('.mobile-info').addClass("submitted");
-      $(this).closest('.mobile-info').find(">span").addClass('visible');
-    }
-  });
-
-
-
-  $("body").on("input" ,"footer input" , function(){
-    $(this).closest('form').removeClass('error');
-  });
-  $('footer form').on("submit" ,function(e){
-    e.preventDefault();
-    let errors = 0;
     var $form = $(this);
-    if (!validateEmail($form.find("input").val()) || $form.find("input").val().length == 0) {
+    var val = $form.find("input").first().val();
+    if (!validateEmail(val) || val.length == 0) {
       $form.addClass('error');
-      errors++;
+      return;
     }
-    if (errors == 0) {
-      if ($form.hasClass('launching') || $form.hasClass('submitted')) return;
-      $form.removeClass('error').addClass('launching');
-      setTimeout(function(){
-        $form.addClass("submitted");
-        $form.find(">span").addClass('visible');
-      }, 780);
-      setTimeout(function(){
-        $form.removeClass('launching');
-      }, 1050);
-    }
+    $form.removeClass('error');
+    flashThanks($form);
   });
+
+  if (typeof AOS !== 'undefined') {
+    AOS.init({ once: true, duration: 700, easing: 'ease-out-cubic', offset: 0, disable: false });
+  }
+  (function initAosInScrollContainer(){
+    var aosEls = document.querySelectorAll('[data-aos]');
+    if (!aosEls.length) return;
+    var reveal = function(el){ el.classList.add('aos-animate'); };
+    if (!('IntersectionObserver' in window)) {
+      Array.prototype.forEach.call(aosEls, reveal);
+      return;
+    }
+    var scrollRoot = document.querySelector('.page-scroll') || null;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (!entry.isIntersecting) return;
+        reveal(entry.target);
+        io.unobserve(entry.target);
+      });
+    }, { root: scrollRoot, threshold: 0 });
+    Array.prototype.forEach.call(aosEls, function(el){ io.observe(el); });
+    setTimeout(function(){
+      Array.prototype.forEach.call(aosEls, function(el){
+        if (!el.classList.contains('aos-animate')) reveal(el);
+      });
+    }, 3500);
+  })();
 });
 
 (function detectTouchDevice() {

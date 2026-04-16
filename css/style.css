@@ -931,8 +931,6 @@ footer>ul:nth-child(2){
 	margin-top: 120px;
 	padding-top: 50px;
 	border-top:1px solid rgba(217, 217, 217, .1);
-	content-visibility: auto;
-	contain-intrinsic-size: auto 600px;
 }
 .templates__grid>.elem .media{
 	display: flex;
@@ -1745,7 +1743,8 @@ body.is-touch-device .top__info .right>p  , body.is-touch-device .top__info .rig
 	z-index: 3;
 }
 .mobile-info form.error input{
-	border-color:red;
+	border-color:#f53636;
+	box-shadow:0px 0px 18px rgba(245, 54, 54 ,.2);
 }
 .mobile-info form>input{
 	transition:.2s ease all;
@@ -1883,7 +1882,8 @@ footer  form .group__input>button{
 
 
 footer  form.error>.group__input> input{
-	border-color:red;
+	border-color:#f53636;
+	box-shadow:0px 0px 18px rgba(245, 54, 54 ,.2);
 }
 footer form>input{
 	transition:.2s ease all;
@@ -1911,7 +1911,6 @@ footer form.submitted>span{
 }
 footer form.submitted>p , footer form.submitted>.group__input{
 	opacity:0!important;
-	visibility: hidden!important;
 	pointer-events: none!important;
 }
 .mobile-info{
@@ -2541,58 +2540,25 @@ body.privacy-page>.page-scroll>footer{
 	flex-shrink: 0;
 }
 
-footer form .group__input>button{
-	position: absolute;
-	overflow: visible;
+input.show-thanks{
+	animation: thanksShow 2000ms cubic-bezier(.4,.1,.25,1);
 }
-footer form .group__input>button>.btn-arrow{
-	transition: opacity .25s ease, transform .45s cubic-bezier(.4,0,.2,1);
+@keyframes thanksShow{
+	0%   { background-color: rgba(217, 118, 87, 0.05); box-shadow: 0 0 0 rgba(217, 118, 87, 0); color: rgba(255,255,255,0); }
+	20%  { background-color: rgba(217, 118, 87, 0.28); box-shadow: 0 0 14px rgba(217, 118, 87, 0.32); color: rgba(255,255,255,1); }
+	45%  { background-color: rgba(217, 118, 87, 0.08); box-shadow: 0 0 0 rgba(217, 118, 87, 0); color: rgba(255,255,255,1); }
+	65%  { color: rgba(255,255,255,1); }
+	100% { background-color: rgba(217, 118, 87, 0.05); box-shadow: 0 0 0 rgba(217, 118, 87, 0); color: rgba(255,255,255,0); }
 }
-footer form .group__input>button>.btn-rocket{
-	position: absolute;
-	top:50%;
-	left:50%;
-	transform: translate(-50%, 40%) scale(.6);
-	opacity: 0;
-	pointer-events: none;
-	transition: none;
-}
-footer form .group__input>button>.btn-flame{
-	position: absolute;
-	top: 70%;
-	left: 50%;
-	width: 6px;
-	height: 0px;
-	border-radius: 50% 50% 45% 45% / 30% 30% 60% 60%;
-	background: linear-gradient(to bottom, rgba(255,214,170,.95), rgba(217,118,87,.85) 55%, rgba(217,118,87,0));
-	transform: translate(-50%, 0);
-	transform-origin: top center;
-	opacity: 0;
-	filter: blur(.5px);
-	pointer-events: none;
-}
-footer form.launching .group__input>button{
-	background-color: rgba(217, 118, 87, 0.22);
-}
-footer form.launching .group__input>button>.btn-arrow{
-	opacity: 0;
-	transform: rotate(-90deg) translateY(14px);
-}
-footer form.launching .group__input>button>.btn-rocket{
-	animation: btnRocketLaunch 1s cubic-bezier(.55,.05,.35,1) forwards;
-}
-footer form.launching .group__input>button>.btn-flame{
-	animation: btnRocketFlame 1s ease-out forwards;
-}
-@keyframes btnRocketLaunch{
-	0%   { opacity: 0; transform: translate(-50%, 40%) scale(.6); }
-	20%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-	55%  { opacity: 1; transform: translate(-50%, -220%) scale(.95); }
-	100% { opacity: 0; transform: translate(-50%, -520%) scale(.7); }
-}
-@keyframes btnRocketFlame{
-	0%   { opacity: 0; height: 0px; transform: translate(-50%, 0) scaleY(0); }
-	25%  { opacity: 1; height: 14px; transform: translate(-50%, 0) scaleY(1); }
-	60%  { opacity: .9; height: 10px; transform: translate(-50%, 4px) scaleY(.9); }
-	100% { opacity: 0; height: 4px; transform: translate(-50%, 10px) scaleY(.3); }
-}
+
+input::placeholder{ transition: color 900ms cubic-bezier(.4,.1,.25,1); }
+input::-webkit-input-placeholder{ transition: color 900ms cubic-bezier(.4,.1,.25,1); }
+input::-moz-placeholder{ transition: color 900ms cubic-bezier(.4,.1,.25,1); opacity: 1; }
+input:-ms-input-placeholder{ transition: color 900ms cubic-bezier(.4,.1,.25,1); }
+input::-ms-input-placeholder{ transition: color 900ms cubic-bezier(.4,.1,.25,1); }
+
+input.placeholder-hidden::placeholder{ color: rgba(185, 185, 185, 0) !important; }
+input.placeholder-hidden::-webkit-input-placeholder{ color: rgba(185, 185, 185, 0) !important; }
+input.placeholder-hidden::-moz-placeholder{ color: rgba(185, 185, 185, 0) !important; }
+input.placeholder-hidden:-ms-input-placeholder{ color: rgba(185, 185, 185, 0) !important; }
+input.placeholder-hidden::-ms-input-placeholder{ color: rgba(185, 185, 185, 0) !important; }
