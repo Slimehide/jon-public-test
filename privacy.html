@@ -11,7 +11,7 @@
 	<link rel="preload" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=block" as="style">
 	<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=block" rel="stylesheet">
 </head>
-<body>
+<body class="privacy-page">
 	<div class="aurora-backdrop" aria-hidden="true">
 		<canvas class="aurora-canvas"></canvas>
 		<div class="aurora-fallback-glow"></div>
@@ -19,8 +19,8 @@
 	<div class="page-scroll">
 	<div class="main__flow">
 		<div class="small-title">
-			<span>GalaxyBrain <span>v 0.8.3 beta</span></span>
-			<a href="index.html">🏠 Back to Home</a>
+			<a class="brand" href="index.html">GalaxyBrain <span>v 0.8.3 beta</span></a>
+			<a href="#">🗂️ Documentation</a>
 		</div>
 
 		<div class="privacy-content">
@@ -36,14 +36,16 @@
 		</div>
 	</div>
 	<footer>
-		<ul>
-			<li><a href="mailto:hello@galaxybrain.com" class="email-copy" data-email="hello@galaxybrain.com">hello@galaxybrain.com</a></li>
-			<li><a href="#">Discord</a></li>
-		</ul>
-		<ul>
-			<li><span>Copyright Galaxybrain 2026</span></li>
-			<li><a href="privacy.html">Privacy Policy</a></li>
-		</ul>
+		<div class="double">
+			<ul>
+				<li><a href="mailto:hello@galaxybrain.com" class="email-copy" data-email="hello@galaxybrain.com">hello@galaxybrain.com</a></li>
+				<li><a href="#">Discord</a></li>
+			</ul>
+			<ul>
+				<li><span>Copyright Galaxybrain 2026</span></li>
+				<li><a href="privacy.html">Privacy Policy</a></li>
+			</ul>
+		</div>
 	</footer>
 	</div>
 
@@ -53,15 +55,6 @@
   crossorigin="anonymous"></script>
 	<script src="js/aurora.js"></script>
 	<script>
-		$(document).ready(function(){
-			if ($('.privacy-content').length) {
-			    $('.privacy-content').css('min-height' , ($(window).height() - $('footer').outerHeight() - $('footer').css('margin-top').slice(0,-2) - $('.privacy-content').offset().top));
-			    $(window).on('resize' ,function(){
-			    	$('.privacy-content').css('min-height' , ($(window).height() - $('footer').outerHeight() - $('footer').css('margin-top').slice(0,-2) - $('.privacy-content').offset().top));
-			    });
-			}
-		});
-
 	(function detectTouchDevice() {
 	  var ua = navigator.userAgent || '';
 	  var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);

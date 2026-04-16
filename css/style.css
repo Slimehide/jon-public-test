@@ -269,13 +269,22 @@ body *{
 	padding-right: 16px;
 	padding-top: 141px;
 }
-.main__flow>.small-title>span{
+.main__flow>.small-title>span,
+.main__flow>.small-title>a.brand{
 	font-size: 14px;
 	line-height: 150%;
 	color:rgba(185, 185, 185, 1);
 	opacity: .5;
 }
-.main__flow>.small-title>a{
+.main__flow>.small-title>a.brand{
+	text-decoration: none;
+	transition:.2s ease all;
+	position: relative;
+}
+.main__flow>.small-title>a.brand:hover{
+	opacity: .8;
+}
+.main__flow>.small-title>a:not(.brand){
 	text-decoration: none;
 	font-size: 14px;
 	line-height: 100%;
@@ -283,7 +292,7 @@ body *{
 	font-family:"Geist Mono" ,sans-serif;
 	transition:.2s ease all;
 }
-.main__flow>.small-title>a:hover{
+.main__flow>.small-title>a:not(.brand):hover{
 	opacity:.8;
 }
 .main__flow>.small-title{
@@ -329,7 +338,7 @@ body *{
 	margin-top: 0px;
 	margin-bottom:32px;
 	font-size: 48px;
-	line-height: 80%;
+	line-height: 88%;
 	display: block;
 	font-weight: 400;
 	letter-spacing: -0.05em;
@@ -1719,10 +1728,12 @@ body.is-touch-device .top__info .right>p  , body.is-touch-device .top__info .rig
 .bottom__info .middle ul>li{
 	border-radius:3px!important;	
 }
-.small-title>span {
+.small-title>span,
+.small-title>a.brand {
 	position: relative;
 }
-.small-title>span span{
+.small-title>span span,
+.small-title>a.brand span{
 	position: absolute;
 	left:0px;
 	bottom:-11px;
@@ -1900,6 +1911,7 @@ footer form.submitted>span{
 }
 footer form.submitted>p , footer form.submitted>.group__input{
 	opacity:0!important;
+	visibility: hidden!important;
 	pointer-events: none!important;
 }
 .mobile-info{
@@ -1935,6 +1947,12 @@ footer .left .form__box{
 }
 footer .double>ul:nth-child(2){
 	text-align: right;
+}
+footer form .group__input>button{
+	right: 4px;
+}
+footer form .group__input>button{
+	overflow: hidden!important;
 }
 @media (max-width: 1921px) and (max-height: 740px){
 
@@ -2041,7 +2059,8 @@ footer .double>ul:nth-child(2){
 	.video__box{
 		margin-bottom: 40px;
 	}
-	.main__flow>.small-title>span{
+	.main__flow>.small-title>span,
+	.main__flow>.small-title>a.brand{
 		font-size: 12px;
 	}
 	.main__flow>.small-title>a{
@@ -2251,7 +2270,7 @@ footer .double>ul:nth-child(2){
 	.main__flow .top__info{
 		flex-direction: column;
 	}
-	.main__flow .top__info>.right p , .main__flow .top__info>.left>p , .main__flow>.small-title>span{
+	.main__flow .top__info>.right p , .main__flow .top__info>.left>p , .main__flow>.small-title>span , .main__flow>.small-title>a.brand{
 		font-size: 12px;
 		line-height: 18px;
 	}
@@ -2508,4 +2527,72 @@ footer .double>ul:nth-child(2){
 	.privacy-content h2{
 		font-size: 18px;
 	}
+}
+
+body.privacy-page>.page-scroll{
+	display: flex;
+	flex-direction: column;
+}
+body.privacy-page>.page-scroll>.main__flow{
+	flex: 1 0 auto;
+	width: 100%;
+}
+body.privacy-page>.page-scroll>footer{
+	flex-shrink: 0;
+}
+
+footer form .group__input>button{
+	position: absolute;
+	overflow: visible;
+}
+footer form .group__input>button>.btn-arrow{
+	transition: opacity .25s ease, transform .45s cubic-bezier(.4,0,.2,1);
+}
+footer form .group__input>button>.btn-rocket{
+	position: absolute;
+	top:50%;
+	left:50%;
+	transform: translate(-50%, 40%) scale(.6);
+	opacity: 0;
+	pointer-events: none;
+	transition: none;
+}
+footer form .group__input>button>.btn-flame{
+	position: absolute;
+	top: 70%;
+	left: 50%;
+	width: 6px;
+	height: 0px;
+	border-radius: 50% 50% 45% 45% / 30% 30% 60% 60%;
+	background: linear-gradient(to bottom, rgba(255,214,170,.95), rgba(217,118,87,.85) 55%, rgba(217,118,87,0));
+	transform: translate(-50%, 0);
+	transform-origin: top center;
+	opacity: 0;
+	filter: blur(.5px);
+	pointer-events: none;
+}
+footer form.launching .group__input>button{
+	background-color: rgba(217, 118, 87, 0.22);
+}
+footer form.launching .group__input>button>.btn-arrow{
+	opacity: 0;
+	transform: rotate(-90deg) translateY(14px);
+}
+footer form.launching .group__input>button>.btn-rocket{
+	animation: btnRocketLaunch 1s cubic-bezier(.55,.05,.35,1) forwards;
+}
+footer form.launching .group__input>button>.btn-flame{
+	animation: btnRocketFlame 1s ease-out forwards;
+}
+@keyframes btnRocketLaunch{
+	0%   { opacity: 0; transform: translate(-50%, 40%) scale(.6); }
+	20%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+	55%  { opacity: 1; transform: translate(-50%, -220%) scale(.95); }
+	100% { opacity: 0; transform: translate(-50%, -520%) scale(.7); }
+}
+@keyframes btnRocketFlame{
+	0%   { opacity: 0; height: 0px; transform: translate(-50%, 0) scaleY(0); }
+	25%  { opacity: 1; height: 14px; transform: translate(-50%, 0) scaleY(1); }
+	60%  { opacity: .9; height: 10px; transform: translate(-50%, 4px) scaleY(.9); }
+	100% { opacity: 0; height: 4px; transform: translate(-50%, 10px) scaleY(.3); }
 }

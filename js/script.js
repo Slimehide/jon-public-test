@@ -32,14 +32,21 @@ $(document).ready(function(){
   $('footer form').on("submit" ,function(e){
     e.preventDefault();
     let errors = 0;
-    if (!validateEmail($(this).find("input").val()) || $(this).find("input").val().length == 0) {
-      $(this).addClass('error');
+    var $form = $(this);
+    if (!validateEmail($form.find("input").val()) || $form.find("input").val().length == 0) {
+      $form.addClass('error');
       errors++;
     }
     if (errors == 0) {
-      $(this).removeClass('error');
-      $(this).closest('form').addClass("submitted");
-      $(this).closest('form').find(">span").addClass('visible');
+      if ($form.hasClass('launching') || $form.hasClass('submitted')) return;
+      $form.removeClass('error').addClass('launching');
+      setTimeout(function(){
+        $form.addClass("submitted");
+        $form.find(">span").addClass('visible');
+      }, 780);
+      setTimeout(function(){
+        $form.removeClass('launching');
+      }, 1050);
     }
   });
 });
