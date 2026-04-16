@@ -1953,6 +1953,17 @@ footer form .group__input>button{
 footer form .group__input>button{
 	overflow: hidden!important;
 }
+footer{
+	display: flex;
+	flex-direction: row!important;
+	justify-content: space-between!important;
+}
+footer ul{
+	text-align: right;
+}
+footer form{
+	margin-bottom: 0px;
+}
 @media (max-width: 1921px) and (max-height: 740px){
 
 	.main__flow{
@@ -2203,6 +2214,20 @@ footer form .group__input>button{
 	opacity:.5;
 }
 @media (max-width: 767px){
+	footer{
+		flex-direction: column!important;
+	}
+	footer .form__box{
+		width: 100%;
+		max-width: 100%;
+	}
+	footer form{
+		width: 100%;
+		max-width: 100%;
+	}
+	footer .double{
+		margin-top: 15px;
+	}
 	.templates__grid .elem .author .media--box{
 		bottom:-38px;
 	}
