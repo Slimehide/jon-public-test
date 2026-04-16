@@ -28,76 +28,11 @@
 			<p class="privacy-date">Last updated: April 13, 2026</p>
 
 			<section>
-				<h2>1. Introduction</h2>
-				<p>Welcome to GalaxyBrain. We respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information when you use our application and website.</p>
+				<p>Your data stays on your computer. None of it touches our servers. All pages, files, and content you create in GalaxyBrain are stored locally and never sent anywhere.</p>
+				<p>We collect anonymous, aggregate usage analytics with no personal data retention.</p>
 			</section>
 
-			<section>
-				<h2>2. Information We Collect</h2>
-				<h3>Data stored locally</h3>
-				<p>GalaxyBrain stores your pages and data locally on your device. We do not require an account and do not store your content on our servers. Your documents, spreadsheets, and structured data remain entirely on your computer.</p>
-				<h3>Email subscription</h3>
-				<p>If you choose to subscribe to our mailing list, we collect your email address through our email subscription service (Mailchimp). This is used solely to send you product updates and relevant communications.</p>
-				<h3>Usage analytics</h3>
-				<p>We may collect anonymized usage data to improve the application, such as page views, feature usage patterns, and performance metrics. This data does not identify you personally.</p>
-			</section>
-
-			<section>
-				<h2>3. How We Use Your Information</h2>
-				<p>We use collected information for the following purposes:</p>
-				<ul>
-					<li>To provide and maintain the GalaxyBrain application</li>
-					<li>To send product updates and communications (if you subscribed)</li>
-					<li>To improve and optimize the user experience</li>
-					<li>To monitor and analyze usage trends</li>
-				</ul>
-			</section>
-
-			<section>
-				<h2>4. Data Storage and Security</h2>
-				<p>Your content is stored locally on your device. We do not have access to your files or data created within GalaxyBrain. Any changes you make are saved to your local file system. We implement reasonable security measures to protect any personal information we do collect (such as email addresses) from unauthorized access or disclosure.</p>
-			</section>
-
-			<section>
-				<h2>5. Third-Party Services</h2>
-				<p>We may use third-party services that collect information used to identify you. These services have their own privacy policies addressing how they use such information:</p>
-				<ul>
-					<li>Mailchimp (email subscription management)</li>
-					<li>Vimeo (video hosting)</li>
-				</ul>
-			</section>
-
-			<section>
-				<h2>6. Cookies</h2>
-				<p>GalaxyBrain does not use cookies for tracking purposes. Any local storage used is strictly for application functionality and your data remains on your device.</p>
-			</section>
-
-			<section>
-				<h2>7. Your Rights</h2>
-				<p>You have the right to:</p>
-				<ul>
-					<li>Access the personal data we hold about you</li>
-					<li>Request correction of inaccurate data</li>
-					<li>Request deletion of your data</li>
-					<li>Unsubscribe from email communications at any time</li>
-					<li>Object to processing of your personal data</li>
-				</ul>
-			</section>
-
-			<section>
-				<h2>8. Children's Privacy</h2>
-				<p>GalaxyBrain does not knowingly collect personal information from children under the age of 13. If you believe we have collected information from a child under 13, please contact us so we can promptly remove it.</p>
-			</section>
-
-			<section>
-				<h2>9. Changes to This Policy</h2>
-				<p>We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date.</p>
-			</section>
-
-			<section>
-				<h2>10. Contact Us</h2>
-				<p>If you have any questions about this privacy policy or our data practices, please contact us at <a href="mailto:hello@galaxybrain.com">hello@galaxybrain.com</a>.</p>
-			</section>
+			
 		</div>
 	</div>
 	<footer>
@@ -118,6 +53,15 @@
   crossorigin="anonymous"></script>
 	<script src="js/aurora.js"></script>
 	<script>
+		$(document).ready(function(){
+			if ($('.privacy-content').length) {
+			    $('.privacy-content').css('min-height' , ($(window).height() - $('footer').outerHeight() - $('footer').css('margin-top').slice(0,-2) - $('.privacy-content').offset().top));
+			    $(window).on('resize' ,function(){
+			    	$('.privacy-content').css('min-height' , ($(window).height() - $('footer').outerHeight() - $('footer').css('margin-top').slice(0,-2) - $('.privacy-content').offset().top));
+			    });
+			}
+		});
+
 	(function detectTouchDevice() {
 	  var ua = navigator.userAgent || '';
 	  var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);

@@ -1,6 +1,8 @@
 
 
 $(document).ready(function(){
+
+  
    function validateEmail($email) {
     var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
     return emailReg.test( $email );
@@ -19,6 +21,25 @@ $(document).ready(function(){
       $(this).removeClass('error');
       $(this).closest('.mobile-info').addClass("submitted");
       $(this).closest('.mobile-info').find(">span").addClass('visible');
+    }
+  });
+
+
+
+  $("body").on("input" ,"footer input" , function(){
+    $(this).closest('form').removeClass('error');
+  });
+  $('footer form').on("submit" ,function(e){
+    e.preventDefault();
+    let errors = 0;
+    if (!validateEmail($(this).find("input").val()) || $(this).find("input").val().length == 0) {
+      $(this).addClass('error');
+      errors++;
+    }
+    if (errors == 0) {
+      $(this).removeClass('error');
+      $(this).closest('form').addClass("submitted");
+      $(this).closest('form').find(">span").addClass('visible');
     }
   });
 });
