@@ -1186,7 +1186,6 @@ $(function () {
     entry.hideTimer = setTimeout(function () {
       if (!entry.isActive) return;
       if (entry.isSeeking || entry.isAdjustingVolume) { scheduleHide(entry); return; }
-      if (!entry.isPlaying) { scheduleHide(entry); return; }
       hideControls(entry);
     }, delay || TOUCH_AUTO_HIDE_MS);
   }
@@ -1291,12 +1290,7 @@ $(function () {
     });
     player.on('pause', function () {
       entry.isPlaying = false;
-      if (entry.isActive) {
-        setPlayUI(entry, false);
-        // Keep controls visible while paused; cancel any pending auto-hide.
-        if (entry.hideTimer) { clearTimeout(entry.hideTimer); entry.hideTimer = null; }
-        showControls(entry);
-      }
+      if (entry.isActive) setPlayUI(entry, false);
     });
     player.on('volumechange', function (data) {
       if (!entry.isActive) return;
@@ -1460,7 +1454,6 @@ $(function () {
       $box.on('mouseleave', function () {
         if (!entry.isActive) return;
         if (entry.isSeeking || entry.isAdjustingVolume) return;
-        if (!entry.isPlaying) return;
         hideControls(entry);
       });
     }
