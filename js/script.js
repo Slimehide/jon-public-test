@@ -1168,12 +1168,32 @@ $(function () {
     }
   }
 
+  var isTouchControls = document.body.classList.contains('is-touch-device');
+  var TOUCH_AUTO_HIDE_MS = 2500;
+
   function showControls(entry) {
+    if (entry.hideTimer) { clearTimeout(entry.hideTimer); entry.hideTimer = null; }
     entry.$controls.addClass('is-visible').attr('aria-hidden', 'false');
   }
 
   function hideControls(entry) {
+    if (entry.hideTimer) { clearTimeout(entry.hideTimer); entry.hideTimer = null; }
     entry.$controls.removeClass('is-visible').attr('aria-hidden', 'true');
+  }
+
+  function scheduleHide(entry, delay) {
+    if (entry.hideTimer) clearTimeout(entry.hideTimer);
+    entry.hideTimer = setTimeout(function () {
+      if (!entry.isActive) return;
+      if (entry.isSeeking || entry.isAdjustingVolume) { scheduleHide(entry); return; }
+      if (!entry.isPlaying) { scheduleHide(entry); return; }
+      hideControls(entry);
+    }, delay || TOUCH_AUTO_HIDE_MS);
+  }
+
+  function revealControls(entry) {
+    showControls(entry);
+    if (isTouchControls) scheduleHide(entry);
   }
 
   function resetToMuted(entry) {
@@ -1265,8 +1285,19 @@ $(function () {
       $controls.find('.vc-progress-buffer').css('width', pct + '%');
     });
 
-    player.on('play', function () { if (entry.isActive) setPlayUI(entry, true); });
-    player.on('pause', function () { if (entry.isActive) setPlayUI(entry, false); });
+    player.on('play', function () {
+      entry.isPlaying = true;
+      if (entry.isActive) setPlayUI(entry, true);
+    });
+    player.on('pause', function () {
+      entry.isPlaying = false;
+      if (entry.isActive) {
+        setPlayUI(entry, false);
+        // Keep controls visible while paused; cancel any pending auto-hide.
+        if (entry.hideTimer) { clearTimeout(entry.hideTimer); entry.hideTimer = null; }
+        showControls(entry);
+      }
+    });
     player.on('volumechange', function (data) {
       if (!entry.isActive) return;
       setVolumeUI(entry, data ? data.volume : 0);
@@ -1380,6 +1411,12 @@ $(function () {
       e.preventDefault();
       e.stopPropagation();
       if (entry.isActive) {
+        // On touch devices, tapping the video should only reveal the controls,
+        // never toggle playback. Play/pause is only via the controls bar button.
+        if (isTouchControls) {
+          revealControls(entry);
+          return;
+        }
         entry.player.getPaused().then(function (paused) {
           if (paused) {
             entry.player.play();
@@ -1400,11 +1437,33 @@ $(function () {
         entry.player.setLoop(false);
         entry.player.play();
         entry.isActive = true;
+        entry.isPlaying = true;
         setPlayUI(entry, true);
         setVolumeUI(entry, 1);
-        showControls(entry);
+        revealControls(entry);
       }
     });
+
+    // Show/hide controls based on device: hover on desktop, tap with auto-hide on touch.
+    if (isTouchControls) {
+      $box.on('touchstart', function () {
+        if (entry.isActive) revealControls(entry);
+      });
+      // Any interaction inside the controls bar resets the auto-hide timer.
+      $controls.on('touchstart touchmove mousedown', function () {
+        if (entry.isActive) revealControls(entry);
+      });
+    } else {
+      $box.on('mouseenter', function () {
+        if (entry.isActive) showControls(entry);
+      });
+      $box.on('mouseleave', function () {
+        if (!entry.isActive) return;
+        if (entry.isSeeking || entry.isAdjustingVolume) return;
+        if (!entry.isPlaying) return;
+        hideControls(entry);
+      });
+    }
     } catch (e) {}
   });
 

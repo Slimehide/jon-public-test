@@ -844,17 +844,15 @@ footer>ul:nth-child(2){
 	font-family:"Geist Mono", sans-serif;
 	color:#D9D9D9;
 	opacity:0;
-	transform:translateY(8px);
+	transform:translateY(4px);
 	pointer-events:none;
-	transition:opacity .25s ease, transform .25s ease;
+	transition:opacity .22s cubic-bezier(.4,0,.2,1), transform .22s cubic-bezier(.4,0,.2,1);
+	will-change:opacity, transform;
 }
 .video__controls.is-visible{
 	opacity:1;
 	transform:translateY(0);
 	pointer-events:auto;
-}
-.video__box:hover .video__controls.is-visible{
-	opacity:1;
 }
 .video__controls .vc-btn{
 	display:inline-flex;
