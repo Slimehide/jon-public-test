@@ -1083,19 +1083,116 @@ $(function () {
 
   const players = [];
 
+  function formatVideoTime(seconds) {
+    if (!isFinite(seconds) || seconds < 0) seconds = 0;
+    var total = Math.floor(seconds);
+    var m = Math.floor(total / 60);
+    var s = total % 60;
+    return m + ':' + (s < 10 ? '0' + s : s);
+  }
+
+  function buildVideoControls() {
+    return $(
+      '<div class="video__controls" aria-hidden="true">' +
+        '<button class="vc-btn vc-play-toggle" type="button" aria-label="Play">' +
+          '<svg class="vc-icon vc-icon--play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+            '<path d="M8 5.14v13.72c0 .79.87 1.27 1.54.84l10.8-6.86a1 1 0 0 0 0-1.68L9.54 4.3C8.87 3.87 8 4.35 8 5.14z"/>' +
+          '</svg>' +
+          '<svg class="vc-icon vc-icon--pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+            '<rect x="6" y="5" width="4" height="14" rx="1"/>' +
+            '<rect x="14" y="5" width="4" height="14" rx="1"/>' +
+          '</svg>' +
+        '</button>' +
+        '<div class="vc-time vc-time--current">0:00</div>' +
+        '<div class="vc-progress" role="slider" aria-label="Seek" tabindex="0">' +
+          '<div class="vc-progress-track">' +
+            '<div class="vc-progress-buffer"></div>' +
+            '<div class="vc-progress-fill"></div>' +
+            '<div class="vc-progress-thumb"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="vc-time vc-time--duration">0:00</div>' +
+        '<div class="vc-volume">' +
+          '<button class="vc-btn vc-mute-toggle" type="button" aria-label="Mute">' +
+            '<svg class="vc-icon vc-icon--volume" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+              '<path d="M3 10v4h4l5 4V6L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4.03v8.05A4.5 4.5 0 0 0 16.5 12zM14 3.23v2.06A7 7 0 0 1 14 18.71v2.06a9 9 0 0 0 0-17.54z"/>' +
+            '</svg>' +
+            '<svg class="vc-icon vc-icon--muted" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+              '<path d="M16.5 12a4.5 4.5 0 0 0-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zM19 12c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.94 8.94 0 0 0 21 12c0-4.28-2.99-7.86-7-8.77v2.06A7 7 0 0 1 19 12zM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.17v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4 9.91 6.09 12 8.18V4z"/>' +
+            '</svg>' +
+          '</button>' +
+          '<div class="vc-volume-track" role="slider" aria-label="Volume" tabindex="0">' +
+            '<div class="vc-volume-fill"></div>' +
+            '<div class="vc-volume-thumb"></div>' +
+          '</div>' +
+        '</div>' +
+        '<button class="vc-btn vc-fullscreen-toggle" type="button" aria-label="Fullscreen">' +
+          '<svg class="vc-icon vc-icon--fs" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+            '<path d="M5 5h5V3H3v7h2V5zm9-2v2h5v5h2V3h-7zM5 14H3v7h7v-2H5v-5zm14 5h-5v2h7v-7h-2v5z"/>' +
+          '</svg>' +
+          '<svg class="vc-icon vc-icon--fs-exit" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+            '<path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>' +
+          '</svg>' +
+        '</button>' +
+      '</div>'
+    );
+  }
+
+  function setVolumeUI(entry, volume) {
+    var clamped = Math.max(0, Math.min(1, volume));
+    // Track has 5px left/right padding; usable inner width = 100% - 10px.
+    entry.$controls.find('.vc-volume-fill').css('width', 'calc((100% - 10px) * ' + clamped + ')');
+    entry.$controls.find('.vc-volume-thumb').css('left', 'calc(5px + (100% - 10px) * ' + clamped + ')');
+    var muted = clamped <= 0.001;
+    entry.$controls.toggleClass('is-muted', muted);
+    entry.$controls.find('.vc-mute-toggle').attr('aria-label', muted ? 'Unmute' : 'Mute');
+    entry.lastVolume = clamped;
+  }
+
+  function setProgressUI(entry, current, duration) {
+    var pct = duration > 0 ? Math.max(0, Math.min(1, current / duration)) * 100 : 0;
+    entry.$controls.find('.vc-progress-fill').css('width', pct + '%');
+    entry.$controls.find('.vc-progress-thumb').css('left', pct + '%');
+    entry.$controls.find('.vc-time--current').text(formatVideoTime(current));
+  }
+
+  function setPlayUI(entry, isPlaying) {
+    entry.$controls.toggleClass('is-playing', !!isPlaying);
+    entry.$controls.find('.vc-play-toggle').attr('aria-label', isPlaying ? 'Pause' : 'Play');
+    if (isPlaying) {
+      entry.$box.find('.icon-play').hide();
+      entry.$box.find('.icon-pause').show();
+    } else {
+      entry.$box.find('.icon-play').show();
+      entry.$box.find('.icon-pause').hide();
+    }
+  }
+
+  function showControls(entry) {
+    entry.$controls.addClass('is-visible').attr('aria-hidden', 'false');
+  }
+
+  function hideControls(entry) {
+    entry.$controls.removeClass('is-visible').attr('aria-hidden', 'true');
+  }
+
   function resetToMuted(entry) {
     entry.player.setCurrentTime(0);
     entry.player.setVolume(0);
     entry.player.setLoop(true);
     entry.player.play();
     entry.isActive = false;
+    entry.$box.removeClass('playing');
+    entry.$box.find('.video__btn').removeClass('playing');
     $(entry.box).find('.icon-play').show();
     $(entry.box).find('.icon-pause').hide();
+    if (entry.$controls) hideControls(entry);
   }
   $('body').on("click" , '.video__box' , function(e){
     if ($(e.target).closest('.video__btn').length) return;
+    if ($(e.target).closest('.video__controls').length) return;
     e.preventDefault();
-    $('.video__btn').click();
+    $(this).find('.video__btn').click();
   })
   $('.video__box').each(function () {
     const $box = $(this);
@@ -1112,25 +1209,171 @@ $(function () {
     `);
     $box.append($iframe);
 
+    const $controls = buildVideoControls();
+    $box.append($controls);
+
     var _origError = console.error;
     console.error = function () {};
     const player = new Vimeo.Player($iframe[0]);
     console.error = _origError;
-    const entry = { box: this, player, isActive: false };
+    const entry = {
+      box: this,
+      $box: $box,
+      $controls: $controls,
+      player: player,
+      isActive: false,
+      duration: 0,
+      lastVolume: 1,
+      isSeeking: false,
+      isAdjustingVolume: false,
+      wasPlayingBeforeSeek: false
+    };
     players.push(entry);
 
     player.ready().then(function () {
       player.setVolume(0);
       player.setLoop(true);
       player.play();
+      player.getDuration().then(function (d) {
+        entry.duration = d || 0;
+        $controls.find('.vc-time--duration').text(formatVideoTime(entry.duration));
+      }).catch(function () {});
     }).catch(function () {
       $iframe.remove();
+      $controls.remove();
+    });
+
+    player.on('loaded', function () {
+      player.getDuration().then(function (d) {
+        entry.duration = d || 0;
+        $controls.find('.vc-time--duration').text(formatVideoTime(entry.duration));
+      }).catch(function () {});
+    });
+
+    player.on('timeupdate', function (data) {
+      if (!entry.isActive || entry.isSeeking) return;
+      if (data && typeof data.duration === 'number' && data.duration > 0) {
+        entry.duration = data.duration;
+        $controls.find('.vc-time--duration').text(formatVideoTime(entry.duration));
+      }
+      setProgressUI(entry, data ? data.seconds : 0, entry.duration);
+    });
+
+    player.on('progress', function (data) {
+      if (!entry.isActive || !data || !entry.duration) return;
+      var pct = Math.max(0, Math.min(1, data.percent)) * 100;
+      $controls.find('.vc-progress-buffer').css('width', pct + '%');
+    });
+
+    player.on('play', function () { if (entry.isActive) setPlayUI(entry, true); });
+    player.on('pause', function () { if (entry.isActive) setPlayUI(entry, false); });
+    player.on('volumechange', function (data) {
+      if (!entry.isActive) return;
+      setVolumeUI(entry, data ? data.volume : 0);
     });
 
     player.on('ended', function () {
       if (entry.isActive) {
         resetToMuted(entry);
       }
+    });
+
+    // Play/pause custom button
+    $controls.on('click', '.vc-play-toggle', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      entry.player.getPaused().then(function (paused) {
+        if (paused) entry.player.play();
+        else entry.player.pause();
+      });
+    });
+
+    // Mute toggle
+    $controls.on('click', '.vc-mute-toggle', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      entry.player.getVolume().then(function (v) {
+        if (v > 0.001) {
+          entry.preMuteVolume = v;
+          entry.player.setVolume(0);
+        } else {
+          var restore = entry.preMuteVolume && entry.preMuteVolume > 0 ? entry.preMuteVolume : 1;
+          entry.player.setVolume(restore);
+        }
+      });
+    });
+
+    // Progress bar seeking (click + drag)
+    var $progress = $controls.find('.vc-progress');
+    function seekFromEvent(ev) {
+      var rect = $progress[0].getBoundingClientRect();
+      var x = (ev.touches ? ev.touches[0].clientX : ev.clientX) - rect.left;
+      var pct = Math.max(0, Math.min(1, x / rect.width));
+      var time = pct * (entry.duration || 0);
+      setProgressUI(entry, time, entry.duration);
+      entry.player.setCurrentTime(time).catch(function () {});
+    }
+    $progress.on('mousedown touchstart', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      entry.isSeeking = true;
+      entry.player.getPaused().then(function (p) { entry.wasPlayingBeforeSeek = !p; });
+      seekFromEvent(e.originalEvent || e);
+      $(document).on('mousemove.vcseek touchmove.vcseek', function (ev) {
+        seekFromEvent(ev.originalEvent || ev);
+      });
+      $(document).on('mouseup.vcseek touchend.vcseek touchcancel.vcseek', function () {
+        $(document).off('.vcseek');
+        entry.isSeeking = false;
+        if (entry.wasPlayingBeforeSeek) entry.player.play().catch(function () {});
+      });
+    });
+
+    // Volume slider (click + drag)
+    var $volTrack = $controls.find('.vc-volume-track');
+    function volumeFromEvent(ev) {
+      var rect = $volTrack[0].getBoundingClientRect();
+      var innerLeft = rect.left + 5;
+      var innerWidth = rect.width - 10;
+      if (innerWidth <= 0) return;
+      var x = (ev.touches ? ev.touches[0].clientX : ev.clientX) - innerLeft;
+      var pct = Math.max(0, Math.min(1, x / innerWidth));
+      setVolumeUI(entry, pct);
+      entry.player.setVolume(pct).catch(function () {});
+      if (pct > 0) entry.preMuteVolume = pct;
+    }
+    $volTrack.on('mousedown touchstart', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      entry.isAdjustingVolume = true;
+      volumeFromEvent(e.originalEvent || e);
+      $(document).on('mousemove.vcvol touchmove.vcvol', function (ev) {
+        volumeFromEvent(ev.originalEvent || ev);
+      });
+      $(document).on('mouseup.vcvol touchend.vcvol touchcancel.vcvol', function () {
+        $(document).off('.vcvol');
+        entry.isAdjustingVolume = false;
+      });
+    });
+
+    // Fullscreen
+    $controls.on('click', '.vc-fullscreen-toggle', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var el = $box[0];
+      var isFs = document.fullscreenElement || document.webkitFullscreenElement;
+      if (!isFs) {
+        var req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+        if (req) req.call(el).catch(function () {});
+      } else {
+        var exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+        if (exit) exit.call(document).catch(function () {});
+      }
+    });
+
+    // Prevent stray clicks on the controls bar itself from bubbling to .video__box
+    $controls.on('click mousedown touchstart', function (e) {
+      e.stopPropagation();
     });
 
     $box.find('.video__btn').on('click', function (e) {
@@ -1140,12 +1383,8 @@ $(function () {
         entry.player.getPaused().then(function (paused) {
           if (paused) {
             entry.player.play();
-            $box.find('.icon-play').hide();
-            $box.find('.icon-pause').show();
           } else {
             entry.player.pause();
-            $box.find('.icon-play').show();
-            $box.find('.icon-pause').hide();
           }
         });
       } else {
@@ -1161,11 +1400,21 @@ $(function () {
         entry.player.setLoop(false);
         entry.player.play();
         entry.isActive = true;
-        $box.find('.icon-play').hide();
-        $box.find('.icon-pause').show();
+        setPlayUI(entry, true);
+        setVolumeUI(entry, 1);
+        showControls(entry);
       }
     });
     } catch (e) {}
+  });
+
+  // Fullscreen state sync across all hero videos
+  $(document).on('fullscreenchange webkitfullscreenchange', function () {
+    var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+    players.forEach(function (entry) {
+      var isFs = fsEl && entry.box && (fsEl === entry.box || $.contains(fsEl, entry.box) || $.contains(entry.box, fsEl));
+      entry.$controls.toggleClass('is-fullscreen', !!isFs);
+    });
   });
 
 
